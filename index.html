@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KOSHIGAYA BOYS | Team Schedule</title>
+<style>
+:root{
+  --navy:#102b4e; --navy2:#183d68; --orange:#f28b21; --bg:#f4f7fb;
+  --card:#fff; --line:#dce4ee; --text:#172033; --muted:#687386;
+  --sat:#eaf4ff; --sun:#fff0ed; --green:#1c8c65;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;background:var(--bg);color:var(--text)}
+header{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:18px 18px 22px}
+.head{max-width:1180px;margin:auto;display:flex;justify-content:space-between;gap:16px;align-items:center}
+.brand small{opacity:.8}.brand h1{font-size:22px;margin:3px 0}.badge{background:var(--orange);padding:8px 12px;border-radius:999px;font-weight:800;font-size:12px}
+main{max-width:1180px;margin:-10px auto 40px;padding:0 14px}
+.panel{background:#fff;border-radius:18px;box-shadow:0 10px 30px #17325312;padding:16px;margin-bottom:14px}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.filters{display:flex;gap:8px;flex-wrap:wrap}
+button,select,input,textarea{font:inherit}
+button,.chip{border:0;border-radius:11px;padding:10px 13px;cursor:pointer;font-weight:700}
+button.primary{background:var(--orange);color:#fff}.ghost{background:#edf2f7;color:var(--navy)}
+.chip{background:#eef2f7}.chip.active{background:var(--navy);color:#fff}
+.monthnav{display:flex;align-items:center;gap:8px}.monthnav h2{min-width:145px;text-align:center;font-size:18px}
+.week{display:grid;grid-template-columns:repeat(7,1fr);border:1px solid var(--line);border-bottom:0;border-radius:14px 14px 0 0;overflow:hidden}
+.week div{text-align:center;padding:9px;font-size:12px;font-weight:800;background:#f7f9fc;border-right:1px solid var(--line)}
+.week div:nth-child(6){background:var(--sat)}.week div:nth-child(7){background:var(--sun);border-right:0}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);border-left:1px solid var(--line);border-top:1px solid var(--line)}
+.day{min-height:126px;background:#fff;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:7px;overflow:hidden}
+.day:nth-child(7n+6){background:#fbfdff}.day:nth-child(7n){background:#fffafa}
+.day.muted{background:#fafbfc;color:#a6afbd}.date{font-weight:800;font-size:13px;margin-bottom:5px}
+.event{font-size:11px;padding:6px;margin:4px 0;border-radius:8px;background:#edf3fa;border-left:4px solid var(--navy);cursor:pointer;line-height:1.35}
+.event.game{background:#fff2e5;border-color:var(--orange)}.event.practice{background:#eaf8f2;border-color:var(--green)}
+.event.exp{background:#f3ecff;border-color:#7651c9}
+.legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:10px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
+.list{display:none}.listitem{padding:13px;border-bottom:1px solid var(--line)}.listitem b{color:var(--navy)}
+.modal{position:fixed;inset:0;background:#0c1c306e;display:none;align-items:center;justify-content:center;padding:18px;z-index:10}
+.modal.show{display:flex}.box{background:#fff;border-radius:18px;padding:20px;width:min(540px,100%);max-height:90vh;overflow:auto}
+.box h3{margin-top:0}.field{margin:11px 0}.field label{display:block;font-size:12px;font-weight:800;margin-bottom:5px;color:var(--muted)}
+.field input,.field select,.field textarea{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;background:#fff}.field textarea{min-height:75px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}
+.help{font-size:12px;color:var(--muted);line-height:1.6}
+.mobilebar{display:none}
+@media(max-width:720px){
+  .head{align-items:flex-start}.badge{font-size:10px}.brand h1{font-size:18px}
+  main{padding:0 8px}.panel{border-radius:14px;padding:11px}
+  .week,.calendar{display:none}.list{display:block}
+  .toolbar{align-items:flex-start}.monthnav h2{min-width:115px;font-size:16px}
+  .mobilebar{display:block;background:#fff7ed;border-radius:10px;padding:9px;font-size:12px;margin:8px 0}
+  .row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<header>
+ <div class="head">
+  <div class="brand"><small>保護者・選手・指導者の「探す」を減らす</small><h1>⚾ KOSHIGAYA BOYS スケジュール</h1></div>
+  <div class="badge">DEMO VERSION</div>
+ </div>
+</header>
+<main>
+ <section class="panel">
+  <div class="toolbar">
+   <div class="monthnav">
+    <button class="ghost" id="prev">‹</button><h2 id="monthTitle"></h2><button class="ghost" id="next">›</button>
+    <button class="ghost" id="today">今月</button>
+   </div>
+   <button class="primary" id="add">＋ 予定を登録</button>
+  </div>
+  <div class="mobilebar">スマホでは予定を一覧表示。チーム・学年で絞り込めます。</div>
+  <div class="filters" style="margin-top:12px">
+   <button class="chip active" data-filter="all">すべて</button>
+   <button class="chip" data-filter="A">Aチーム</button>
+   <button class="chip" data-filter="B">Bチーム</button>
+   <button class="chip" data-filter="1">1年生</button>
+   <button class="chip" data-filter="2">2年生</button>
+   <button class="chip" data-filter="3">3年生</button>
+  </div>
+ </section>
+
+ <section class="panel">
+  <div class="week"><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div><div>日</div></div>
+  <div class="calendar" id="calendar"></div>
+  <div class="list" id="list"></div>
+  <div class="legend">
+   <span><i class="dot" style="background:#f28b21"></i>試合</span>
+   <span><i class="dot" style="background:#1c8c65"></i>練習</span>
+   <span><i class="dot" style="background:#7651c9"></i>体験・行事</span>
+   <span><i class="dot" style="background:#102b4e"></i>その他</span>
+  </div>
+ </section>
+ <section class="panel help">
+  <b>このデモの考え方：</b>監督・担当者は「1回だけ予定を登録」。保護者は公式LINEのリッチメニューからこの画面を開き、自分のチーム・学年だけを確認する想定です。試合、練習、集合時間、場所、持ち物、連絡事項を1か所にまとめます。<br>
+  ※このHTML版はブラウザ内保存（localStorage）のデモです。複数の保護者とリアルタイム共有する本番版では、Firebase / Supabase等の共有データベースを接続します。
+ </section>
+</main>
+
+<div class="modal" id="modal">
+ <div class="box">
+  <h3>⚾ 予定を登録</h3>
+  <div class="row">
+   <div class="field"><label>日付</label><input type="date" id="fdate"></div>
+   <div class="field"><label>種類</label><select id="ftype"><option value="game">試合</option><option value="practice">練習</option><option value="exp">体験・行事</option><option value="other">その他</option></select></div>
+  </div>
+  <div class="field"><label>予定名</label><input id="ftitle" placeholder="例：練習試合 vs ○○ボーイズ"></div>
+  <div class="row">
+   <div class="field"><label>チーム</label><select id="fteam"><option>A</option><option>B</option><option>全体</option></select></div>
+   <div class="field"><label>学年</label><select id="fgrade"><option value="1">1年生</option><option value="2">2年生</option><option value="3">3年生</option><option value="全">全学年</option></select></div>
+  </div>
+  <div class="row">
+   <div class="field"><label>集合時間</label><input type="time" id="ftime"></div>
+   <div class="field"><label>場所</label><input id="fplace" placeholder="例：越谷市民球場"></div>
+  </div>
+  <div class="field"><label>持ち物・連絡事項</label><textarea id="fnote" placeholder="例：ユニフォーム、昼食、水筒"></textarea></div>
+  <div class="actions"><button class="ghost" id="cancel">キャンセル</button><button class="primary" id="save">保存する</button></div>
+ </div>
+</div>
+
+<script>
+const sample=[
+ {date:'2026-09-19',type:'practice',title:'通常練習',team:'A',grade:'1',time:'08:00',place:'専用グラウンド',note:'水筒・昼食'},
+ {date:'2026-09-20',type:'game',title:'公式戦 vs サンプルボーイズ',team:'A',grade:'3',time:'07:00',place:'越谷市民球場',note:'試合用ユニフォーム'},
+ {date:'2026-09-20',type:'practice',title:'Bチーム 練習',team:'B',grade:'2',time:'09:00',place:'専用グラウンド',note:''},
+ {date:'2026-09-23',type:'exp',title:'体験入部会',team:'全体',grade:'全',time:'09:30',place:'専用グラウンド',note:'小学6年生対象・グローブ持参'},
+ {date:'2026-09-26',type:'game',title:'練習試合',team:'B',grade:'1',time:'07:30',place:'○○球場',note:'昼食持参'},
+ {date:'2026-09-27',type:'practice',title:'全体練習',team:'全体',grade:'全',time:'08:00',place:'専用グラウンド',note:''}
+];
+let events=JSON.parse(localStorage.getItem('kb_events')||'null')||sample;
+let current=new Date(2026,8,1), filter='all';
+const $=s=>document.querySelector(s), cal=$('#calendar'), list=$('#list');
+function pad(n){return String(n).padStart(2,'0')}
+function ymd(y,m,d){return `${y}-${pad(m+1)}-${pad(d)}`}
+function visible(e){return filter==='all'||e.team===filter||e.grade===filter||e.team==='全体'||e.grade==='全'}
+function render(){
+ const y=current.getFullYear(),m=current.getMonth();
+ $('#monthTitle').textContent=`${y}年 ${m+1}月`;
+ cal.innerHTML=''; list.innerHTML='';
+ let first=new Date(y,m,1), offset=(first.getDay()+6)%7;
+ let start=new Date(y,m,1-offset);
+ for(let i=0;i<42;i++){
+  let dt=new Date(start);dt.setDate(start.getDate()+i);
+  let key=ymd(dt.getFullYear(),dt.getMonth(),dt.getDate());
+  let day=document.createElement('div');day.className='day'+(dt.getMonth()!=m?' muted':'');
+  day.innerHTML=`<div class="date">${dt.getDate()}</div>`;
+  events.filter(e=>e.date===key&&visible(e)).forEach(e=>{
+   let el=document.createElement('div');el.className=`event ${e.type}`;
+   el.innerHTML=`<b>${e.time||''} ${e.title}</b><br>${e.team} / ${e.grade==='全'?'全学年':e.grade+'年'}`;
+   el.onclick=()=>alert(`${e.title}\n${e.date} ${e.time||''}\n${e.team} / ${e.grade==='全'?'全学年':e.grade+'年'}\n場所：${e.place||'未設定'}\n連絡：${e.note||'なし'}`);
+   day.appendChild(el);
+  }); cal.appendChild(day);
+ }
+ events.filter(e=>{let d=new Date(e.date+'T00:00:00');return d.getFullYear()===y&&d.getMonth()===m&&visible(e)})
+ .sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time)).forEach(e=>{
+   let x=document.createElement('div');x.className='listitem';
+   x.innerHTML=`<b>${Number(e.date.slice(5,7))}/${Number(e.date.slice(8,10))}（${'日月火水木金土'[new Date(e.date+'T00:00:00').getDay()]}） ${e.time||''}</b><br>${e.title}<br><small>${e.team} / ${e.grade==='全'?'全学年':e.grade+'年'}　📍${e.place||'未設定'}</small>`;
+   x.onclick=()=>alert(`${e.title}\n集合：${e.time||'未設定'}\n場所：${e.place||'未設定'}\n${e.note||''}`);list.appendChild(x);
+ });
+}
+document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));b.classList.add('active');filter=b.dataset.filter;render()});
+$('#prev').onclick=()=>{current.setMonth(current.getMonth()-1);render()};$('#next').onclick=()=>{current.setMonth(current.getMonth()+1);render()};
+$('#today').onclick=()=>{let d=new Date();current=new Date(d.getFullYear(),d.getMonth(),1);render()};
+$('#add').onclick=()=>{$('#fdate').value=ymd(current.getFullYear(),current.getMonth(),new Date().getDate());$('#modal').classList.add('show')};
+$('#cancel').onclick=()=>$('#modal').classList.remove('show');
+$('#save').onclick=()=>{
+ let e={date:$('#fdate').value,type:$('#ftype').value,title:$('#ftitle').value.trim(),team:$('#fteam').value,grade:$('#fgrade').value,time:$('#ftime').value,place:$('#fplace').value.trim(),note:$('#fnote').value.trim()};
+ if(!e.date||!e.title){alert('日付と予定名を入力してください');return}
+ events.push(e);localStorage.setItem('kb_events',JSON.stringify(events));$('#modal').classList.remove('show');current=new Date(e.date+'T00:00:00');current.setDate(1);render();
+};
+render();
+</script>
+</body>
+</html>
