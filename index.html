@@ -40,7 +40,7 @@ button.primary{background:var(--orange);color:#fff}.ghost{background:#edf2f7;col
 .event.exp{background:#f3ecff;border-color:#7651c9}
 .legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:10px}
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
-.list{display:none}.listitem{padding:13px;border-bottom:1px solid var(--line)}.listitem b{color:var(--navy)}
+.view-switch{display:flex;gap:6px;margin-bottom:10px;background:#eef2f7;padding:4px;border-radius:12px;width:max-content}.viewbtn{background:transparent;color:var(--muted);padding:9px 13px}.viewbtn.active{background:#fff;color:var(--navy);box-shadow:0 2px 8px #17325314}.list{display:none}.listitem{padding:13px;border-bottom:1px solid var(--line)}.listitem b{color:var(--navy)}
 .modal{position:fixed;inset:0;background:#0c1c306e;display:none;align-items:center;justify-content:center;padding:18px;z-index:10}
 .modal.show{display:flex}.box{background:#fff;border-radius:18px;padding:20px;width:min(540px,100%);max-height:90vh;overflow:auto}
 .box h3{margin-top:0}.field{margin:11px 0}.field label{display:block;font-size:12px;font-weight:800;margin-bottom:5px;color:var(--muted)}
@@ -50,10 +50,14 @@ button.primary{background:var(--orange);color:#fff}.ghost{background:#edf2f7;col
 .mobilebar{display:none}
 @media(max-width:720px){
   .head{align-items:flex-start}.badge{font-size:10px}.brand h1{font-size:18px}
-  main{padding:0 8px}.panel{border-radius:14px;padding:11px}
-  .week,.calendar{display:none}.list{display:block}
-  .toolbar{align-items:flex-start}.monthnav h2{min-width:115px;font-size:16px}
-  .mobilebar{display:block;background:#fff7ed;border-radius:10px;padding:9px;font-size:12px;margin:8px 0}
+  main{padding:0 6px}.panel{border-radius:14px;padding:9px}
+  .toolbar{align-items:flex-start}.monthnav{gap:4px}.monthnav h2{min-width:100px;font-size:15px}
+  .monthnav button{padding:8px 9px}.mobilebar{display:block;background:#fff7ed;border-radius:10px;padding:9px;font-size:12px;margin:8px 0}
+  .week div{padding:7px 2px;font-size:10px}
+  .day{min-height:78px;padding:3px}.date{font-size:11px;margin-bottom:2px}
+  .event{font-size:9px;padding:3px 2px;margin:2px 0;border-left-width:3px;line-height:1.2}
+  .event br{display:none}.holiday-name{display:block;font-size:7px;margin-left:0;white-space:nowrap;overflow:hidden}
+  .view-switch{width:100%;display:grid;grid-template-columns:1fr 1fr}.viewbtn{width:100%}
   .row{grid-template-columns:1fr}
 }
 </style>
@@ -74,7 +78,7 @@ button.primary{background:var(--orange);color:#fff}.ghost{background:#edf2f7;col
    </div>
    <button class="primary" id="add">＋ 予定を登録</button>
   </div>
-  <div class="mobilebar">スマホでは予定を一覧表示。チーム・学年で絞り込めます。</div>
+  <div class="mobilebar">スマホでも月間カレンダーを表示できます。「カレンダー／予定一覧」をワンタップで切替できます。</div>
   <div class="filters" style="margin-top:12px">
    <button class="chip active" data-filter="all">すべて</button>
    <button class="chip" data-filter="越谷ボーイズ">越谷ボーイズ</button>
@@ -86,7 +90,11 @@ button.primary{background:var(--orange);color:#fff}.ghost{background:#edf2f7;col
  </section>
 
  <section class="panel">
-  <div class="week"><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div><div>日</div></div>
+  <div class="view-switch" role="group" aria-label="表示切替">
+   <button class="viewbtn active" id="calendarViewBtn">📅 カレンダー</button>
+   <button class="viewbtn" id="listViewBtn">☰ 予定一覧</button>
+  </div>
+  <div class="week" id="weekHeader"><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div><div>日</div></div>
   <div class="calendar" id="calendar"></div>
   <div class="list" id="list"></div>
   <div class="legend">
@@ -135,6 +143,18 @@ const sample=[
 let events=JSON.parse(localStorage.getItem('kb_events')||'null')||sample;
 let current=new Date(2026,8,1), filter='all';
 const $=s=>document.querySelector(s), cal=$('#calendar'), list=$('#list');
+let viewMode='calendar';
+function setView(mode){
+ viewMode=mode;
+ const isCal=mode==='calendar';
+ $('#weekHeader').style.display=isCal?'grid':'none';
+ cal.style.display=isCal?'grid':'none';
+ list.style.display=isCal?'none':'block';
+ $('#calendarViewBtn').classList.toggle('active',isCal);
+ $('#listViewBtn').classList.toggle('active',!isCal);
+}
+$('#calendarViewBtn').onclick=()=>setView('calendar');
+$('#listViewBtn').onclick=()=>setView('list');
 function pad(n){return String(n).padStart(2,'0')}
 function ymd(y,m,d){return `${y}-${pad(m+1)}-${pad(d)}`}
 function visible(e){return filter==='all'||e.team===filter||e.grade===filter||e.team==='全体'||e.grade==='全'}
@@ -174,6 +194,7 @@ function render(){
    x.innerHTML=`<b>${Number(e.date.slice(5,7))}/${Number(e.date.slice(8,10))}（${'日月火水木金土'[new Date(e.date+'T00:00:00').getDay()]}） ${e.time||''}</b><br>${e.title}<br><small>${e.team} / ${e.grade==='全'?'全学年':e.grade+'年'}　📍${e.place||'未設定'}</small>`;
    x.onclick=()=>alert(`${e.title}\n集合：${e.time||'未設定'}\n場所：${e.place||'未設定'}\n${e.note||''}`);list.appendChild(x);
  });
+ setView(viewMode);
 }
 document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));b.classList.add('active');filter=b.dataset.filter;render()});
 $('#prev').onclick=()=>{current.setMonth(current.getMonth()-1);render()};$('#next').onclick=()=>{current.setMonth(current.getMonth()+1);render()};
