@@ -6,7 +6,7 @@
 <title>KOSHIGAYA BOYS | Team Schedule</title>
 <style>
 :root{
-  --navy:#102b4e; --navy2:#183d68; --orange:#f28b21; --bg:#f4f7fb;
+  --navy:#BB5758; --navy2:#A94D4E; --orange:#f28b21; --bg:#FAF7F5;
   --card:#fff; --line:#dce4ee; --text:#172033; --muted:#687386;
   --sat:#eaf4ff; --sun:#fff0ed; --green:#1c8c65;
 }
@@ -14,14 +14,14 @@
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;background:var(--bg);color:var(--text)}
 header{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:18px 18px 22px}
 .head{max-width:1180px;margin:auto;display:flex;justify-content:space-between;gap:16px;align-items:center}
-.brand small{opacity:.8}.brand h1{font-size:22px;margin:3px 0}.badge{background:var(--orange);padding:8px 12px;border-radius:999px;font-weight:800;font-size:12px}
+.brand small{opacity:.8}.brand h1{font-size:22px;margin:3px 0}.badge{background:var(--orange);padding:8px 12px;border-radius:999px;font-weight:800;font-size:12px}.help-button{background:#fff;color:var(--navy);border:0;border-radius:999px;padding:9px 14px;font-weight:800;cursor:pointer;box-shadow:0 3px 12px #6f3b3b22}.help-button:hover{transform:translateY(-1px)}
 main{max-width:1180px;margin:-10px auto 40px;padding:0 14px}
-.panel{background:#fff;border-radius:18px;box-shadow:0 10px 30px #17325312;padding:16px;margin-bottom:14px}
+.panel{background:#fff;border-radius:18px;box-shadow:0 10px 30px #6f3b3b12;padding:16px;margin-bottom:14px}
 .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
 .filters{display:flex;gap:8px;flex-wrap:wrap}
 button,select,input,textarea{font:inherit}
 button,.chip{border:0;border-radius:11px;padding:10px 13px;cursor:pointer;font-weight:700}
-button.primary{background:var(--orange);color:#fff}.ghost{background:#edf2f7;color:var(--navy)}
+button.primary{background:var(--orange);color:#fff}.add-schedule{background:#133C58!important;color:#fff}.add-schedule:hover{background:#0F3047!important}.ghost{background:#edf2f7;color:var(--navy)}
 .chip{background:#eef2f7}.chip.active{background:var(--navy);color:#fff}
 .monthnav{display:flex;align-items:center;gap:8px}.monthnav h2{min-width:145px;text-align:center;font-size:18px}
 .week{display:grid;grid-template-columns:repeat(7,1fr);border:1px solid var(--line);border-bottom:0;border-radius:14px 14px 0 0;overflow:hidden}
@@ -40,16 +40,16 @@ button.primary{background:var(--orange);color:#fff}.ghost{background:#edf2f7;col
 .event.exp{background:#f3ecff;border-color:#7651c9}
 .legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:10px}
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
-.view-switch{display:flex;gap:6px;margin-bottom:10px;background:#eef2f7;padding:4px;border-radius:12px;width:max-content}.viewbtn{background:transparent;color:var(--muted);padding:9px 13px}.viewbtn.active{background:#fff;color:var(--navy);box-shadow:0 2px 8px #17325314}.list{display:none}.listitem{padding:13px;border-bottom:1px solid var(--line)}.listitem b{color:var(--navy)}
+.view-switch{display:flex;gap:6px;margin-bottom:10px;background:#eef2f7;padding:4px;border-radius:12px;width:max-content}.viewbtn{background:transparent;color:var(--muted);padding:9px 13px}.viewbtn.active{background:#fff;color:var(--navy);box-shadow:0 2px 8px #6f3b3b14}.list{display:none}.listitem{padding:13px;border-bottom:1px solid var(--line)}.listitem b{color:var(--navy)}
 .modal{position:fixed;inset:0;background:#0c1c306e;display:none;align-items:center;justify-content:center;padding:18px;z-index:10}
 .modal.show{display:flex}.box{background:#fff;border-radius:18px;padding:20px;width:min(540px,100%);max-height:90vh;overflow:auto}
 .box h3{margin-top:0}.field{margin:11px 0}.field label{display:block;font-size:12px;font-weight:800;margin-bottom:5px;color:var(--muted)}
 .field input,.field select,.field textarea{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;background:#fff}.field textarea{min-height:75px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}
-.help{font-size:12px;color:var(--muted);line-height:1.6}
+.help{font-size:12px;color:var(--muted);line-height:1.6}.guide-lead{background:#f3f7fb;border-radius:12px;padding:12px 14px;line-height:1.7}.guide-section{margin-top:18px}.guide-section h4{margin:0 0 8px;color:var(--navy);font-size:15px}.guide-section ul{padding-left:22px;margin:0}.guide-section li{margin:7px 0;line-height:1.55}.guide-message{margin-top:18px;background:#fff7ed;border-left:4px solid var(--orange);border-radius:10px;padding:13px;font-weight:800;color:var(--navy);line-height:1.6}.close-x{float:right;background:#eef2f7;color:var(--navy);padding:7px 10px;border-radius:10px}
 .mobilebar{display:none}
 @media(max-width:720px){
-  .head{align-items:flex-start}.badge{font-size:10px}.brand h1{font-size:18px}
+  .head{align-items:flex-start}.help-button{font-size:11px;padding:8px 11px;white-space:nowrap}.brand h1{font-size:18px}
   main{padding:0 6px}.panel{border-radius:14px;padding:9px}
   .toolbar{align-items:flex-start}.monthnav{gap:4px}.monthnav h2{min-width:100px;font-size:15px}
   .monthnav button{padding:8px 9px}.mobilebar{display:block;background:#fff7ed;border-radius:10px;padding:9px;font-size:12px;margin:8px 0}
@@ -66,7 +66,7 @@ button.primary{background:var(--orange);color:#fff}.ghost{background:#edf2f7;col
 <header>
  <div class="head">
   <div class="brand"><small>保護者・選手・指導者の「探す」を減らす</small><h1>⚾ KOSHIGAYA BOYS スケジュール</h1></div>
-  <div class="badge">DEMO VERSION</div>
+  <button class="help-button" id="helpBtn" aria-label="使い方を開く">？ 使い方</button>
  </div>
 </header>
 <main>
@@ -76,7 +76,7 @@ button.primary{background:var(--orange);color:#fff}.ghost{background:#edf2f7;col
     <button class="ghost" id="prev">‹</button><h2 id="monthTitle"></h2><button class="ghost" id="next">›</button>
     <button class="ghost" id="today">今月</button>
    </div>
-   <button class="primary" id="add">＋ 予定を登録</button>
+   <button class="primary add-schedule" id="add">＋ 予定を登録</button>
   </div>
   <div class="mobilebar">スマホでも月間カレンダーを表示できます。「カレンダー／予定一覧」をワンタップで切替できます。</div>
   <div class="filters" style="margin-top:12px">
@@ -104,11 +104,40 @@ button.primary{background:var(--orange);color:#fff}.ghost{background:#edf2f7;col
    <span><i class="dot" style="background:#102b4e"></i>その他</span><span><i class="dot" style="background:#fff;border:1px solid #ccd5df"></i>平日</span><span><i class="dot" style="background:#eef7ff"></i>土曜</span><span><i class="dot" style="background:#fff1f1"></i>日曜</span><span><i class="dot" style="background:#fff7df"></i>祝日</span>
   </div>
  </section>
- <section class="panel help">
-  <b>このデモの考え方：</b>監督・担当者は「1回だけ予定を登録」。保護者は公式LINEのリッチメニューからこの画面を開き、「越谷ボーイズ」「越谷中央ボーイズ」と学年を選び、必要な予定だけを確認する想定です。試合、練習、集合時間、場所、持ち物、連絡事項を1か所にまとめます。平日・土曜・日曜・祝日は背景色を薄く変えて、ひと目で区別できます。<br>
-  ※このHTML版はブラウザ内保存（localStorage）のデモです。複数の保護者とリアルタイム共有する本番版では、Firebase / Supabase等の共有データベースを接続します。
- </section>
 </main>
+
+<div class="modal" id="helpModal">
+ <div class="box">
+  <button class="close-x" id="helpClose" aria-label="閉じる">✕</button>
+  <h3>⚾ このアプリについて</h3>
+  <div class="guide-lead">
+   このアプリは、<b>越谷ボーイズ・越谷中央ボーイズ</b>の予定を、
+   選手・保護者・指導者が簡単に確認するためのスケジュールアプリです。
+  </div>
+
+  <div class="guide-section">
+   <h4>📅 使い方</h4>
+   <ul>
+    <li>「カレンダー」で1か月の予定を確認できます。</li>
+    <li>「予定一覧」にすると、予定を縦に見やすく表示できます。</li>
+    <li>「越谷ボーイズ」「越谷中央ボーイズ」でチームを絞れます。</li>
+    <li>「1年生・2年生・3年生」で学年を絞れます。</li>
+    <li>予定をタップすると、<b>集合時間・場所・持ち物・連絡事項</b>を確認できます。</li>
+    <li>平日・土曜・日曜・祝日は背景色を変えて、ひと目で分かるようにしています。</li>
+   </ul>
+  </div>
+
+  <div class="guide-section">
+   <h4>👨‍👩‍👦 保護者の皆さまへ</h4>
+   <p>「今週はどこ？」「集合は何時？」をLINEの中から探さなくても、<b>このアプリを開けばすぐ分かる</b>ことを目指しています。</p>
+  </div>
+
+  <div class="guide-message">
+   予定を探す時間を減らして、子どもたちを応援する時間へ。
+  </div>
+  <div class="actions"><button class="primary" id="helpOk">わかりました</button></div>
+ </div>
+</div>
 
 <div class="modal" id="modal">
  <div class="box">
@@ -206,6 +235,10 @@ $('#save').onclick=()=>{
  if(!e.date||!e.title){alert('日付と予定名を入力してください');return}
  events.push(e);localStorage.setItem('kb_events',JSON.stringify(events));$('#modal').classList.remove('show');current=new Date(e.date+'T00:00:00');current.setDate(1);render();
 };
+$('#helpBtn').onclick=()=>$('#helpModal').classList.add('show');
+$('#helpClose').onclick=()=>$('#helpModal').classList.remove('show');
+$('#helpOk').onclick=()=>$('#helpModal').classList.remove('show');
+$('#helpModal').onclick=(e)=>{if(e.target===$('#helpModal')) $('#helpModal').classList.remove('show');};
 render();
 </script>
 </body>
