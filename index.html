@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KOSHIGAYA BOYS | Team Schedule</title>
+<link rel="icon" type="image/png" href="./favicon.png">
 <style>
 :root{
   --navy:#BB5758; --navy2:#A94D4E; --orange:#f28b21; --bg:#FAF7F5;
@@ -61,12 +62,14 @@ button.primary{background:var(--orange);color:#fff}.add-schedule{background:#133
   .row{grid-template-columns:1fr}
 }
 .brand-home{color:inherit;text-decoration:none;display:inline-block;cursor:pointer}.brand-home:focus-visible{outline:2px solid #fff;outline-offset:4px;border-radius:4px}html{scroll-behavior:smooth}
+.brand-home{display:inline-flex;align-items:center;gap:9px}.brand-logo{width:34px;height:34px;object-fit:contain;flex:0 0 34px;border-radius:50%}
+@media(max-width:720px){.brand-home{gap:7px;align-items:center}.brand-logo{width:30px;height:30px;flex-basis:30px}}
 </style>
 </head>
 <body id="top">
 <header>
  <div class="head">
-  <div class="brand"><small>保護者・選手・指導者の「探す」を減らす</small><h1><a href="#top" class="brand-home" aria-label="ページ先頭へ戻る">⚾ 越谷ボーイズ スケジュール</a></h1></div>
+  <div class="brand"><small>保護者・選手・指導者の「探す」を減らす</small><h1><a href="#top" class="brand-home" aria-label="ページ先頭へ戻る"><img src="./favicon.png" class="brand-logo" alt="" aria-hidden="true">越谷ボーイズ スケジュール</a></h1></div>
   <button class="help-button" id="helpBtn" aria-label="使い方を開く">？ 使い方</button>
  </div>
 </header>
