@@ -29,8 +29,12 @@ button.primary{background:var(--orange);color:#fff}.ghost{background:#edf2f7;col
 .week div:nth-child(6){background:var(--sat)}.week div:nth-child(7){background:var(--sun);border-right:0}
 .calendar{display:grid;grid-template-columns:repeat(7,1fr);border-left:1px solid var(--line);border-top:1px solid var(--line)}
 .day{min-height:126px;background:#fff;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:7px;overflow:hidden}
-.day:nth-child(7n+6){background:#fbfdff}.day:nth-child(7n){background:#fffafa}
-.day.muted{background:#fafbfc;color:#a6afbd}.date{font-weight:800;font-size:13px;margin-bottom:5px}
+.day.weekday{background:#ffffff}
+.day.saturday{background:#eef7ff}
+.day.sunday{background:#fff1f1}
+.day.holiday{background:#fff7df}
+.day.muted{opacity:.55}
+.holiday-name{font-size:9px;color:#a66a00;font-weight:800;margin-left:4px}.date{font-weight:800;font-size:13px;margin-bottom:5px}
 .event{font-size:11px;padding:6px;margin:4px 0;border-radius:8px;background:#edf3fa;border-left:4px solid var(--navy);cursor:pointer;line-height:1.35}
 .event.game{background:#fff2e5;border-color:var(--orange)}.event.practice{background:#eaf8f2;border-color:var(--green)}
 .event.exp{background:#f3ecff;border-color:#7651c9}
@@ -73,8 +77,8 @@ button.primary{background:var(--orange);color:#fff}.ghost{background:#edf2f7;col
   <div class="mobilebar">スマホでは予定を一覧表示。チーム・学年で絞り込めます。</div>
   <div class="filters" style="margin-top:12px">
    <button class="chip active" data-filter="all">すべて</button>
-   <button class="chip" data-filter="A">Aチーム</button>
-   <button class="chip" data-filter="B">Bチーム</button>
+   <button class="chip" data-filter="越谷ボーイズ">越谷ボーイズ</button>
+   <button class="chip" data-filter="越谷中央ボーイズ">越谷中央ボーイズ</button>
    <button class="chip" data-filter="1">1年生</button>
    <button class="chip" data-filter="2">2年生</button>
    <button class="chip" data-filter="3">3年生</button>
@@ -89,11 +93,11 @@ button.primary{background:var(--orange);color:#fff}.ghost{background:#edf2f7;col
    <span><i class="dot" style="background:#f28b21"></i>試合</span>
    <span><i class="dot" style="background:#1c8c65"></i>練習</span>
    <span><i class="dot" style="background:#7651c9"></i>体験・行事</span>
-   <span><i class="dot" style="background:#102b4e"></i>その他</span>
+   <span><i class="dot" style="background:#102b4e"></i>その他</span><span><i class="dot" style="background:#fff;border:1px solid #ccd5df"></i>平日</span><span><i class="dot" style="background:#eef7ff"></i>土曜</span><span><i class="dot" style="background:#fff1f1"></i>日曜</span><span><i class="dot" style="background:#fff7df"></i>祝日</span>
   </div>
  </section>
  <section class="panel help">
-  <b>このデモの考え方：</b>監督・担当者は「1回だけ予定を登録」。保護者は公式LINEのリッチメニューからこの画面を開き、自分のチーム・学年だけを確認する想定です。試合、練習、集合時間、場所、持ち物、連絡事項を1か所にまとめます。<br>
+  <b>このデモの考え方：</b>監督・担当者は「1回だけ予定を登録」。保護者は公式LINEのリッチメニューからこの画面を開き、「越谷ボーイズ」「越谷中央ボーイズ」と学年を選び、必要な予定だけを確認する想定です。試合、練習、集合時間、場所、持ち物、連絡事項を1か所にまとめます。平日・土曜・日曜・祝日は背景色を薄く変えて、ひと目で区別できます。<br>
   ※このHTML版はブラウザ内保存（localStorage）のデモです。複数の保護者とリアルタイム共有する本番版では、Firebase / Supabase等の共有データベースを接続します。
  </section>
 </main>
@@ -107,7 +111,7 @@ button.primary{background:var(--orange);color:#fff}.ghost{background:#edf2f7;col
   </div>
   <div class="field"><label>予定名</label><input id="ftitle" placeholder="例：練習試合 vs ○○ボーイズ"></div>
   <div class="row">
-   <div class="field"><label>チーム</label><select id="fteam"><option>A</option><option>B</option><option>全体</option></select></div>
+   <div class="field"><label>チーム</label><select id="fteam"><option>越谷ボーイズ</option><option>越谷中央ボーイズ</option><option>全体</option></select></div>
    <div class="field"><label>学年</label><select id="fgrade"><option value="1">1年生</option><option value="2">2年生</option><option value="3">3年生</option><option value="全">全学年</option></select></div>
   </div>
   <div class="row">
@@ -121,11 +125,11 @@ button.primary{background:var(--orange);color:#fff}.ghost{background:#edf2f7;col
 
 <script>
 const sample=[
- {date:'2026-09-19',type:'practice',title:'通常練習',team:'A',grade:'1',time:'08:00',place:'専用グラウンド',note:'水筒・昼食'},
- {date:'2026-09-20',type:'game',title:'公式戦 vs サンプルボーイズ',team:'A',grade:'3',time:'07:00',place:'越谷市民球場',note:'試合用ユニフォーム'},
- {date:'2026-09-20',type:'practice',title:'Bチーム 練習',team:'B',grade:'2',time:'09:00',place:'専用グラウンド',note:''},
+ {date:'2026-09-19',type:'practice',title:'通常練習',team:'越谷ボーイズ',grade:'1',time:'08:00',place:'専用グラウンド',note:'水筒・昼食'},
+ {date:'2026-09-20',type:'game',title:'公式戦 vs サンプルボーイズ',team:'越谷ボーイズ',grade:'3',time:'07:00',place:'越谷市民球場',note:'試合用ユニフォーム'},
+ {date:'2026-09-20',type:'practice',title:'越谷中央ボーイズ 練習',team:'越谷中央ボーイズ',grade:'2',time:'09:00',place:'専用グラウンド',note:''},
  {date:'2026-09-23',type:'exp',title:'体験入部会',team:'全体',grade:'全',time:'09:30',place:'専用グラウンド',note:'小学6年生対象・グローブ持参'},
- {date:'2026-09-26',type:'game',title:'練習試合',team:'B',grade:'1',time:'07:30',place:'○○球場',note:'昼食持参'},
+ {date:'2026-09-26',type:'game',title:'練習試合',team:'越谷中央ボーイズ',grade:'1',time:'07:30',place:'○○球場',note:'昼食持参'},
  {date:'2026-09-27',type:'practice',title:'全体練習',team:'全体',grade:'全',time:'08:00',place:'専用グラウンド',note:''}
 ];
 let events=JSON.parse(localStorage.getItem('kb_events')||'null')||sample;
@@ -134,6 +138,15 @@ const $=s=>document.querySelector(s), cal=$('#calendar'), list=$('#list');
 function pad(n){return String(n).padStart(2,'0')}
 function ymd(y,m,d){return `${y}-${pad(m+1)}-${pad(d)}`}
 function visible(e){return filter==='all'||e.team===filter||e.grade===filter||e.team==='全体'||e.grade==='全'}
+// 日本の祝日（2026年）。祝日は土日とは別の薄いクリーム色で表示します。
+const holidays2026={
+ '2026-01-01':'元日','2026-01-12':'成人の日','2026-02-11':'建国記念の日',
+ '2026-02-23':'天皇誕生日','2026-03-20':'春分の日','2026-04-29':'昭和の日',
+ '2026-05-03':'憲法記念日','2026-05-04':'みどりの日','2026-05-05':'こどもの日',
+ '2026-05-06':'振替休日','2026-07-20':'海の日','2026-08-11':'山の日',
+ '2026-09-21':'敬老の日','2026-09-22':'国民の休日','2026-09-23':'秋分の日',
+ '2026-10-12':'スポーツの日','2026-11-03':'文化の日','2026-11-23':'勤労感謝の日'
+};
 function render(){
  const y=current.getFullYear(),m=current.getMonth();
  $('#monthTitle').textContent=`${y}年 ${m+1}月`;
@@ -143,8 +156,11 @@ function render(){
  for(let i=0;i<42;i++){
   let dt=new Date(start);dt.setDate(start.getDate()+i);
   let key=ymd(dt.getFullYear(),dt.getMonth(),dt.getDate());
-  let day=document.createElement('div');day.className='day'+(dt.getMonth()!=m?' muted':'');
-  day.innerHTML=`<div class="date">${dt.getDate()}</div>`;
+  let dow=dt.getDay();
+  let day=document.createElement('div');
+  let dayType = holidays2026[key] ? ' holiday' : (dow===6 ? ' saturday' : (dow===0 ? ' sunday' : ' weekday'));
+  day.className='day'+dayType+(dt.getMonth()!=m?' muted':'');
+  day.innerHTML=`<div class="date">${dt.getDate()}${holidays2026[key]?`<span class="holiday-name">${holidays2026[key]}</span>`:''}</div>`;
   events.filter(e=>e.date===key&&visible(e)).forEach(e=>{
    let el=document.createElement('div');el.className=`event ${e.type}`;
    el.innerHTML=`<b>${e.time||''} ${e.title}</b><br>${e.team} / ${e.grade==='全'?'全学年':e.grade+'年'}`;
