@@ -71,7 +71,16 @@ button.primary{background:var(--orange);color:#fff}.add-schedule{background:#133
 @media(max-width:720px){.brand-home{gap:7px;align-items:center}.brand-logo{width:30px;height:30px;flex-basis:30px}}
 
 /* Public viewer: registration/editing UI is unavailable. */
-.add-schedule, #modal {display:none !important;}
+.add-schedule {display:none !important;}
+
+/* Public viewer refinements */
+.monthnav{display:grid;grid-template-columns:44px 1fr 44px auto;align-items:center;gap:8px}
+.monthnav h2,.monthnav .month-title,#monthTitle{font-size:22px;font-weight:900;text-align:center;color:#172033;margin:0}
+@media(max-width:720px){
+  .monthnav{grid-template-columns:38px 1fr 38px auto;gap:6px}
+  .monthnav h2,.monthnav .month-title,#monthTitle{font-size:19px}
+}
+
 </style>
 </head>
 <body id="top">
