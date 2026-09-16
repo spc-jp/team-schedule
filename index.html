@@ -71,15 +71,10 @@ button.primary{background:var(--orange);color:#fff}.add-schedule{background:#133
 @media(max-width:720px){.brand-home{gap:7px;align-items:center}.brand-logo{width:30px;height:30px;flex-basis:30px}}
 
 /* Public viewer: registration/editing UI is unavailable. */
-.add-schedule {display:none !important;}
+.add-schedule, #modal {display:none !important;}
 
-/* Public viewer refinements */
-.monthnav{display:grid;grid-template-columns:44px 1fr 44px auto;align-items:center;gap:8px}
-.monthnav h2,.monthnav .month-title,#monthTitle{font-size:22px;font-weight:900;text-align:center;color:#172033;margin:0}
-@media(max-width:720px){
-  .monthnav{grid-template-columns:38px 1fr 38px auto;gap:6px}
-  .monthnav h2,.monthnav .month-title,#monthTitle{font-size:19px}
-}
+/* Public viewer: help/admin controls are intentionally hidden. */
+#helpBtn, .help-button, #helpModal, .add-schedule {display:none !important;}
 
 </style>
 </head>
@@ -87,14 +82,14 @@ button.primary{background:var(--orange);color:#fff}.add-schedule{background:#133
 <header>
  <div class="head">
   <div class="brand"><small>保護者・選手・指導者の「探す」を減らす</small><h1><a href="#top" class="brand-home" aria-label="ページ先頭へ戻る"><img src="./favicon.png" class="brand-logo" alt="" aria-hidden="true">越谷ボーイズ スケジュール</a></h1></div>
-  <button class="help-button" id="helpBtn" aria-label="使い方を開く">？ 使い方</button>
+  
  </div>
 </header>
 <main>
  <section class="panel">
   <div class="toolbar">
    <div class="monthnav">
-    <button class="ghost" id="prev">‹</button><h2 id="monthTitle"></h2><button class="ghost" id="next">›</button>
+    <button class="ghost" id="prev" aria-label="前月">‹</button><h2 id="monthTitle" aria-live="polite"></h2><button class="ghost" id="next" aria-label="次月">›</button>
     <button class="ghost" id="today">今月</button>
    </div>
    
@@ -127,37 +122,7 @@ button.primary{background:var(--orange);color:#fff}.add-schedule{background:#133
  </section>
 </main>
 
-<div class="modal" id="helpModal">
- <div class="box">
-  <button class="close-x" id="helpClose" aria-label="閉じる">✕</button>
-  <h3>⚾ このアプリについて</h3>
-  <div class="guide-lead">
-   このアプリは、<b>越谷ボーイズ・越谷中央ボーイズ</b>の予定を、
-   選手・保護者・指導者が簡単に確認するためのスケジュールアプリです。
-  </div>
 
-  <div class="guide-section">
-   <h4>📅 使い方</h4>
-   <ul>
-    <li>「カレンダー」で1か月の予定を確認できます。</li>
-    <li>「予定一覧」にすると、予定を縦に見やすく表示できます。</li>
-    <li>「越谷ボーイズ」「越谷中央ボーイズ」でチームを絞れます。</li>
-    <li>「1年生・2年生・3年生」で学年を絞れます。</li>
-    <li>予定をタップすると、<b>集合時間・場所・持ち物・連絡事項</b>を確認できます。</li>
-    <li>平日・土曜・日曜・祝日は背景色を変えて、ひと目で分かるようにしています。</li>
-   </ul>
-  </div>
-
-  <div class="guide-section">
-   <h4>👨‍👩‍👦 保護者の皆さまへ</h4>
-   <p>「今週はどこ？」「集合は何時？」をLINEの中から探さなくても、<b>このアプリを開けばすぐ分かる</b>ことを目指しています。</p>
-  </div>
-
-  <div class="guide-message">
-   予定を探す時間を減らして、子どもたちを応援する時間へ。
-  </div>
-  <div class="actions"><button class="primary" id="helpOk">わかりました</button></div>
- </div>
 </div>
 
 <div class="modal" id="modal">
@@ -191,7 +156,7 @@ const sample=[
  {date:'2026-09-27',type:'practice',title:'全体練習',team:'全体',grade:'全',time:'08:00',place:'専用グラウンド',note:''}
 ];
 let events=JSON.parse(localStorage.getItem('kb_events')||'null')||sample;
-let current=new Date(2026,8,1), filter='all';
+let now=new Date(); let current=new Date(now.getFullYear(),now.getMonth(),1), filter='all';
 const $=s=>document.querySelector(s), cal=$('#calendar'), list=$('#list');
 let viewMode='calendar';
 function setView(mode){
@@ -249,16 +214,19 @@ function render(){
 document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));b.classList.add('active');filter=b.dataset.filter;render()});
 $('#prev').onclick=()=>{current.setMonth(current.getMonth()-1);render()};$('#next').onclick=()=>{current.setMonth(current.getMonth()+1);render()};
 $('#today').onclick=()=>{let d=new Date();current=new Date(d.getFullYear(),d.getMonth(),1);render()};
-$('#add').onclick=()=>{$('#fdate').value=ymd(current.getFullYear(),current.getMonth(),new Date().getDate());$('#modal').classList.add('show')};
-$('#cancel').onclick=()=>$('#modal').classList.remove('show');
-$('#save').onclick=()=>{
- let e={date:$('#fdate').value,type:$('#ftype').value,title:$('#ftitle').value.trim(),team:$('#fteam').value,grade:$('#fgrade').value,time:$('#ftime').value,place:$('#fplace').value.trim(),note:$('#fnote').value.trim()};
- if(!e.date||!e.title){alert('日付と予定名を入力してください');return}
- events.push(e);localStorage.setItem('kb_events',JSON.stringify(events));$('#modal').classList.remove('show');current=new Date(e.date+'T00:00:00');current.setDate(1);render();
-};
-$('#helpBtn').onclick=()=>$('#helpModal').classList.add('show');
-$('#helpClose').onclick=()=>$('#helpModal').classList.remove('show');
-$('#helpOk').onclick=()=>$('#helpModal').classList.remove('show');
+const addBtn=$('#add');
+if(addBtn){
+ addBtn.onclick=()=>{$('#fdate').value=ymd(current.getFullYear(),current.getMonth(),new Date().getDate());$('#modal').classList.add('show')};
+ $('#cancel').onclick=()=>$('#modal').classList.remove('show');
+ $('#save').onclick=()=>{
+  let e={date:$('#fdate').value,type:$('#ftype').value,title:$('#ftitle').value.trim(),team:$('#fteam').value,grade:$('#fgrade').value,time:$('#ftime').value,place:$('#fplace').value.trim(),note:$('#fnote').value.trim()};
+  if(!e.date||!e.title){alert('日付と予定名を入力してください');return}
+  events.push(e);localStorage.setItem('kb_events',JSON.stringify(events));$('#modal').classList.remove('show');current=new Date(e.date+'T00:00:00');current.setDate(1);render();
+ };
+}
+if($('#helpBtn')&&$('#helpModal')) $('#helpBtn').onclick=()=>$('#helpModal').classList.add('show');
+if($('#helpClose')&&$('#helpModal')) $('#helpClose').onclick=()=>$('#helpModal').classList.remove('show');
+if($('#helpOk')&&$('#helpModal')) $('#helpOk').onclick=()=>$('#helpModal').classList.remove('show');
 $('#helpModal').onclick=(e)=>{if(e.target===$('#helpModal')) $('#helpModal').classList.remove('show');};
 render();
 </script>
