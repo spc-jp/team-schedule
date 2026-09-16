@@ -227,9 +227,7 @@ function render(){
 document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));b.classList.add('active');filter=b.dataset.filter;render()});
 $('#prev').onclick=()=>{current.setMonth(current.getMonth()-1);render()};$('#next').onclick=()=>{current.setMonth(current.getMonth()+1);render()};
 $('#today').onclick=()=>{let d=new Date();current=new Date(d.getFullYear(),d.getMonth(),1);render()};
-// 公開版の初期表示：まずカレンダーを描画し、その後D1の最新予定を取得
-render();
-loadEvents(); catch (err) {
+ catch (err) {
   console.error('Calendar render error:', err);
   const title = document.querySelector('#monthTitle');
   if (title && !title.textContent) {
@@ -237,6 +235,11 @@ loadEvents(); catch (err) {
     title.textContent = `${d.getFullYear()}年 ${d.getMonth()+1}月`;
   }
 }
+
+// 公開版起動：全ての変数・関数の定義後に実行
+render();
+loadEvents();
+
 </script>
 </body>
 </html>
