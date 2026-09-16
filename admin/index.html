@@ -178,8 +178,9 @@ const sample=[
  {date:'2026-09-26',type:'game',title:'練習試合',team:'越谷中央ボーイズ',grade:'1',time:'07:30',place:'○○球場',note:'昼食持参'},
  {date:'2026-09-27',type:'practice',title:'全体練習',team:'全体',grade:'全',time:'08:00',place:'専用グラウンド',note:''}
 ];
-let events=JSON.parse(localStorage.getItem('kb_events')||'null')||sample;
-let current=new Date(2026,8,1), filter='all';
+const API_URL='https://koshigaya-boys-schedule-api.yymmatsu.workers.dev/events';
+let events=[];
+let current=new Date(), filter='all';
 const $=s=>document.querySelector(s), cal=$('#calendar'), list=$('#list');
 let viewMode='calendar';
 function setView(mode){
@@ -205,6 +206,23 @@ const holidays2026={
  '2026-09-21':'敬老の日','2026-09-22':'国民の休日','2026-09-23':'秋分の日',
  '2026-10-12':'スポーツの日','2026-11-03':'文化の日','2026-11-23':'勤労感謝の日'
 };
+async function loadEvents(){
+ try{
+  const res=await fetch(API_URL,{method:'GET'});
+  const data=await res.json();
+  if(!res.ok || !data.ok) throw new Error(data.error||'予定の読み込みに失敗しました');
+  events=(data.events||[]).map(e=>({
+   id:e.id,date:e.event_date,type:e.event_type,title:e.title,team:e.team,grade:e.grade,
+   time:e.meeting_time||'',place:e.place||'',note:e.notes||''
+  }));
+  render();
+ }catch(error){
+  console.error(error);
+  alert('予定を読み込めませんでした。通信状況を確認して、ページを再読み込みしてください。');
+  render();
+ }
+}
+
 function render(){
  const y=current.getFullYear(),m=current.getMonth();
  $('#monthTitle').textContent=`${y}年 ${m+1}月`;
@@ -239,16 +257,38 @@ $('#prev').onclick=()=>{current.setMonth(current.getMonth()-1);render()};$('#nex
 $('#today').onclick=()=>{let d=new Date();current=new Date(d.getFullYear(),d.getMonth(),1);render()};
 $('#add').onclick=()=>{$('#fdate').value=ymd(current.getFullYear(),current.getMonth(),new Date().getDate());$('#modal').classList.add('show')};
 $('#cancel').onclick=()=>$('#modal').classList.remove('show');
-$('#save').onclick=()=>{
- let e={date:$('#fdate').value,type:$('#ftype').value,title:$('#ftitle').value.trim(),team:$('#fteam').value,grade:$('#fgrade').value,time:$('#ftime').value,place:$('#fplace').value.trim(),note:$('#fnote').value.trim()};
- if(!e.date||!e.title){alert('日付と予定名を入力してください');return}
- events.push(e);localStorage.setItem('kb_events',JSON.stringify(events));$('#modal').classList.remove('show');current=new Date(e.date+'T00:00:00');current.setDate(1);render();
+$('#save').onclick=async()=>{
+ const e={
+  event_date:$('#fdate').value,event_type:$('#ftype').value,title:$('#ftitle').value.trim(),
+  team:$('#fteam').value,grade:$('#fgrade').value,meeting_time:$('#ftime').value,
+  place:$('#fplace').value.trim(),notes:$('#fnote').value.trim()
+ };
+ if(!e.event_date||!e.title){alert('日付と予定名を入力してください');return}
+ const saveBtn=$('#save');
+ saveBtn.disabled=true; saveBtn.textContent='保存中…';
+ try{
+  const res=await fetch(API_URL,{
+   method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(e)
+  });
+  const data=await res.json();
+  if(!res.ok || !data.ok) throw new Error(data.error||'予定の登録に失敗しました');
+  $('#modal').classList.remove('show');
+  current=new Date(e.event_date+'T00:00:00'); current.setDate(1);
+  $('#ftitle').value=''; $('#ftime').value=''; $('#fplace').value=''; $('#fnote').value='';
+  await loadEvents();
+  alert('予定を登録しました');
+ }catch(error){
+  console.error(error);
+  alert('予定を登録できませんでした。通信状況を確認して、もう一度お試しください。');
+ }finally{
+  saveBtn.disabled=false; saveBtn.textContent='保存する';
+ }
 };
 $('#helpBtn').onclick=()=>$('#helpModal').classList.add('show');
 $('#helpClose').onclick=()=>$('#helpModal').classList.remove('show');
 $('#helpOk').onclick=()=>$('#helpModal').classList.remove('show');
 $('#helpModal').onclick=(e)=>{if(e.target===$('#helpModal')) $('#helpModal').classList.remove('show');};
-render();
+loadEvents();
 </script>
 </body>
 </html>
