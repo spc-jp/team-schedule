@@ -70,6 +70,8 @@ button.primary{background:var(--orange);color:#fff}.add-schedule{background:#133
 .brand-home{display:inline-flex;align-items:center;gap:9px}.brand-logo{width:34px;height:34px;object-fit:contain;flex:0 0 34px;border-radius:50%}
 @media(max-width:720px){.brand-home{gap:7px;align-items:center}.brand-logo{width:30px;height:30px;flex-basis:30px}}
 
+.api-error{grid-column:1/-1;margin:10px;padding:12px;border-radius:10px;background:#fff7ed;color:#8a4b08;font-weight:700;font-size:13px}
+
 /* Public viewer: registration/editing UI is unavailable. */
 .add-schedule, #modal {display:none !important;}
 
@@ -131,15 +133,42 @@ header{padding-top:14px;padding-bottom:14px}
 </div>
 
 <script>
-const sample=[
- {date:'2026-09-19',type:'practice',title:'通常練習',team:'越谷ボーイズ',grade:'1',time:'08:00',place:'専用グラウンド',note:'水筒・昼食'},
- {date:'2026-09-20',type:'game',title:'公式戦 vs サンプルボーイズ',team:'越谷ボーイズ',grade:'3',time:'07:00',place:'越谷市民球場',note:'試合用ユニフォーム'},
- {date:'2026-09-20',type:'practice',title:'越谷中央ボーイズ 練習',team:'越谷中央ボーイズ',grade:'2',time:'09:00',place:'専用グラウンド',note:''},
- {date:'2026-09-23',type:'exp',title:'体験入部会',team:'全体',grade:'全',time:'09:30',place:'専用グラウンド',note:'小学6年生対象・グローブ持参'},
- {date:'2026-09-26',type:'game',title:'練習試合',team:'越谷中央ボーイズ',grade:'1',time:'07:30',place:'○○球場',note:'昼食持参'},
- {date:'2026-09-27',type:'practice',title:'全体練習',team:'全体',grade:'全',time:'08:00',place:'専用グラウンド',note:''}
-];
-let events=JSON.parse(localStorage.getItem('kb_events')||'null')||sample;
+const API_URL='https://koshigaya-boys-schedule-api.yymmatsu.workers.dev/events';
+let events=[];
+
+function normalizeEvent(e){
+  return {
+    id:e.id,
+    date:e.event_date || e.date || '',
+    type:e.event_type || e.type || 'other',
+    title:e.title || '',
+    team:e.team || '全体',
+    grade:e.grade || '全',
+    time:e.meeting_time || e.time || '',
+    place:e.place || '',
+    note:e.notes || e.note || ''
+  };
+}
+
+async function loadEvents(){
+  const cal=document.querySelector('#calendar');
+  const list=document.querySelector('#list');
+  try{
+    const response=await fetch(API_URL,{method:'GET',headers:{'Accept':'application/json'},cache:'no-store'});
+    if(!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data=await response.json();
+    if(!data.ok || !Array.isArray(data.events)) throw new Error('予定データの形式が正しくありません');
+    events=data.events.map(normalizeEvent);
+    render();
+  }catch(err){
+    console.error('Schedule API error:',err);
+    events=[];
+    render();
+    const message='<div class="api-error">予定を読み込めませんでした。しばらくしてから再読み込みしてください。</div>';
+    if(cal) cal.insertAdjacentHTML('afterbegin',message);
+    if(list) list.insertAdjacentHTML('afterbegin',message);
+  }
+}
 let now=new Date(); let current=new Date(now.getFullYear(),now.getMonth(),1), filter='all';
 const $=s=>document.querySelector(s), cal=$('#calendar'), list=$('#list');
 let viewMode='calendar';
@@ -198,10 +227,9 @@ function render(){
 document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));b.classList.add('active');filter=b.dataset.filter;render()});
 $('#prev').onclick=()=>{current.setMonth(current.getMonth()-1);render()};$('#next').onclick=()=>{current.setMonth(current.getMonth()+1);render()};
 $('#today').onclick=()=>{let d=new Date();current=new Date(d.getFullYear(),d.getMonth(),1);render()};
-// 公開版の初期表示：年月と42日分のカレンダーを必ず描画
-try {
-  render();
-} catch (err) {
+// 公開版の初期表示：まずカレンダーを描画し、その後D1の最新予定を取得
+render();
+loadEvents(); catch (err) {
   console.error('Calendar render error:', err);
   const title = document.querySelector('#monthTitle');
   if (title && !title.textContent) {
