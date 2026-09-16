@@ -74,7 +74,6 @@ button.primary{background:var(--orange);color:#fff}.add-schedule{background:#133
 .add-schedule, #modal {display:none !important;}
 
 /* Public viewer: help/admin controls are intentionally hidden. */
-#helpBtn, .help-button, #helpModal, .add-schedule {display:none !important;}
 
 </style>
 </head>
@@ -224,11 +223,18 @@ if(addBtn){
   events.push(e);localStorage.setItem('kb_events',JSON.stringify(events));$('#modal').classList.remove('show');current=new Date(e.date+'T00:00:00');current.setDate(1);render();
  };
 }
-if($('#helpBtn')&&$('#helpModal')) $('#helpBtn').onclick=()=>$('#helpModal').classList.add('show');
-if($('#helpClose')&&$('#helpModal')) $('#helpClose').onclick=()=>$('#helpModal').classList.remove('show');
-if($('#helpOk')&&$('#helpModal')) $('#helpOk').onclick=()=>$('#helpModal').classList.remove('show');
-$('#helpModal').onclick=(e)=>{if(e.target===$('#helpModal')) $('#helpModal').classList.remove('show');};
-render();
+};
+// 公開版の初期表示：年月と42日分のカレンダーを必ず描画
+try {
+  render();
+} catch (err) {
+  console.error('Calendar render error:', err);
+  const title = document.querySelector('#monthTitle');
+  if (title && !title.textContent) {
+    const d = new Date();
+    title.textContent = `${d.getFullYear()}年 ${d.getMonth()+1}月`;
+  }
+}
 </script>
 </body>
 </html>
