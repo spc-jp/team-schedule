@@ -124,27 +124,6 @@ button.primary{background:var(--orange);color:#fff}.add-schedule{background:#133
 
 </div>
 
-<div class="modal" id="modal">
- <div class="box">
-  <h3>⚾ 予定を登録</h3>
-  <div class="row">
-   <div class="field"><label>日付</label><input type="date" id="fdate"></div>
-   <div class="field"><label>種類</label><select id="ftype"><option value="game">試合</option><option value="practice">練習</option><option value="exp">体験・行事</option><option value="other">その他</option></select></div>
-  </div>
-  <div class="field"><label>予定名</label><input id="ftitle" placeholder="例：練習試合 vs ○○ボーイズ"></div>
-  <div class="row">
-   <div class="field"><label>チーム</label><select id="fteam"><option>越谷ボーイズ</option><option>越谷中央ボーイズ</option><option>全体</option></select></div>
-   <div class="field"><label>学年</label><select id="fgrade"><option value="1">1年生</option><option value="2">2年生</option><option value="3">3年生</option><option value="全">全学年</option></select></div>
-  </div>
-  <div class="row">
-   <div class="field"><label>集合時間</label><input type="time" id="ftime"></div>
-   <div class="field"><label>場所</label><input id="fplace" placeholder="例：越谷市民球場"></div>
-  </div>
-  <div class="field"><label>持ち物・連絡事項</label><textarea id="fnote" placeholder="例：ユニフォーム、昼食、水筒"></textarea></div>
-  <div class="actions"><button class="ghost" id="cancel">キャンセル</button><button class="primary" id="save">保存する</button></div>
- </div>
-</div>
-
 <script>
 const sample=[
  {date:'2026-09-19',type:'practice',title:'通常練習',team:'越谷ボーイズ',grade:'1',time:'08:00',place:'専用グラウンド',note:'水筒・昼食'},
@@ -213,17 +192,6 @@ function render(){
 document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));b.classList.add('active');filter=b.dataset.filter;render()});
 $('#prev').onclick=()=>{current.setMonth(current.getMonth()-1);render()};$('#next').onclick=()=>{current.setMonth(current.getMonth()+1);render()};
 $('#today').onclick=()=>{let d=new Date();current=new Date(d.getFullYear(),d.getMonth(),1);render()};
-const addBtn=$('#add');
-if(addBtn){
- addBtn.onclick=()=>{$('#fdate').value=ymd(current.getFullYear(),current.getMonth(),new Date().getDate());$('#modal').classList.add('show')};
- $('#cancel').onclick=()=>$('#modal').classList.remove('show');
- $('#save').onclick=()=>{
-  let e={date:$('#fdate').value,type:$('#ftype').value,title:$('#ftitle').value.trim(),team:$('#fteam').value,grade:$('#fgrade').value,time:$('#ftime').value,place:$('#fplace').value.trim(),note:$('#fnote').value.trim()};
-  if(!e.date||!e.title){alert('日付と予定名を入力してください');return}
-  events.push(e);localStorage.setItem('kb_events',JSON.stringify(events));$('#modal').classList.remove('show');current=new Date(e.date+'T00:00:00');current.setDate(1);render();
- };
-}
-};
 // 公開版の初期表示：年月と42日分のカレンダーを必ず描画
 try {
   render();
