@@ -69,6 +69,9 @@ button.primary{background:var(--orange);color:#fff}.add-schedule{background:#133
 .brand-home{color:inherit;text-decoration:none;display:inline-block;cursor:pointer}.brand-home:focus-visible{outline:2px solid #fff;outline-offset:4px;border-radius:4px}html{scroll-behavior:smooth}
 .brand-home{display:inline-flex;align-items:center;gap:9px}.brand-logo{width:34px;height:34px;object-fit:contain;flex:0 0 34px;border-radius:50%}
 @media(max-width:720px){.brand-home{gap:7px;align-items:center}.brand-logo{width:30px;height:30px;flex-basis:30px}}
+
+/* Public viewer: registration/editing UI is unavailable. */
+.add-schedule, #modal {display:none !important;}
 </style>
 </head>
 <body id="top">
@@ -85,7 +88,7 @@ button.primary{background:var(--orange);color:#fff}.add-schedule{background:#133
     <button class="ghost" id="prev">‹</button><h2 id="monthTitle"></h2><button class="ghost" id="next">›</button>
     <button class="ghost" id="today">今月</button>
    </div>
-   <button class="primary add-schedule" id="add">＋ 予定を登録</button>
+   
   </div>
   <div class="mobilebar">スマホでも月間カレンダーを表示できます。「カレンダー／予定一覧」をワンタップで切替できます。</div>
   <div class="filters" style="margin-top:12px">
