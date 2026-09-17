@@ -78,6 +78,43 @@ button.primary{background:var(--orange);color:#fff}.add-schedule{background:#133
 
 .event.cancelled{background:#fff0f0!important;border-left-color:#e5484d!important;color:#b42318!important}
 .listitem.cancelled{background:#fff0f0;color:#b42318;border-left:4px solid #e5484d;padding-left:10px}
+
+.detail-actions{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:10px;
+ margin-top:14px;
+}
+.detail-actions button{
+ width:100%;
+ min-height:48px;
+ margin:0;
+ font-size:15px;
+ font-weight:700;
+}
+.detail-actions .close-wide{
+ grid-column:1 / -1;
+}
+.delete-button{
+ background:#dc2626!important;
+ color:#fff!important;
+ border:1px solid #dc2626!important;
+}
+.delete-button:hover{background:#b91c1c!important}
+.delete-warning{
+ background:#fff1f1;
+ border:1px solid #fecaca;
+ color:#991b1b;
+ border-radius:12px;
+ padding:12px 14px;
+ line-height:1.6;
+ margin-top:10px;
+}
+@media(max-width:640px){
+ .modal .box{width:calc(100% - 24px);max-width:none;padding:18px 16px;border-radius:18px}
+ .detail-actions{gap:9px}
+ .detail-actions button{min-height:52px;font-size:16px}
+}
 </style>
 </head>
 <body id="top">
@@ -161,11 +198,23 @@ button.primary{background:var(--orange);color:#fff}.add-schedule{background:#133
  <div class="box">
   <h3>⚾ 予定の詳細</h3>
   <div class="admin-detail" id="detailContent"></div>
-  <div class="actions">
-   <button class="ghost" id="detailClose">閉じる</button>
+  <div class="detail-actions">
    <button class="ghost" id="duplicateEvent">📋 複製</button>
-   <button class="cancel-event-button" id="cancelEvent">🚫 中止</button>
    <button class="edit-button" id="editEvent">✏️ 修正</button>
+   <button class="cancel-event-button" id="cancelEvent">🚫 中止</button>
+   <button class="delete-button" id="deleteEvent">🗑 削除</button>
+   <button class="ghost close-wide" id="detailClose">閉じる</button>
+  </div>
+ </div>
+</div>
+
+<div class="modal" id="deleteModal">
+ <div class="box">
+  <h3>🗑 予定を削除しますか？</h3>
+  <div class="delete-warning" id="deleteContent"></div>
+  <div class="actions">
+   <button class="ghost" id="deleteCancel">キャンセル</button>
+   <button class="delete-button" id="deleteConfirm">削除する</button>
   </div>
  </div>
 </div>
@@ -280,6 +329,39 @@ async function cancelSelectedEvent(){
  }
 }
 
+function openDeleteConfirm(){
+ if(!selectedEvent)return;
+ const cleanTitle=selectedEvent.title.replace(/^【中止】\s*/,'');
+ $('#deleteContent').innerHTML=
+  `<b>${selectedEvent.date}「${cleanTitle}」</b> を完全に削除します。<br>`+
+  `この操作は元に戻せません。`;
+ $('#detailModal').classList.remove('show');
+ $('#deleteModal').classList.add('show');
+}
+
+async function deleteSelectedEvent(){
+ if(!selectedEvent)return;
+ const e=selectedEvent;
+ const btn=$('#deleteConfirm');
+ btn.disabled=true;
+ btn.textContent='削除中…';
+ try{
+  const res=await fetch(`${API_URL}/${e.id}`,{method:'DELETE'});
+  const data=await res.json();
+  if(!res.ok||!data.ok)throw new Error(data.error||'予定の削除に失敗しました');
+  $('#deleteModal').classList.remove('show');
+  selectedEvent=null;
+  await loadEvents();
+  alert('予定を削除しました');
+ }catch(error){
+  console.error(error);
+  alert('予定を削除できませんでした。APIのDELETE対応を確認してください。');
+ }finally{
+  btn.disabled=false;
+  btn.textContent='削除する';
+ }
+}
+
 function openEditForm(){
  if(!selectedEvent)return;
  const e=selectedEvent; editingId=e.id;
@@ -373,6 +455,18 @@ $('#cancel').onclick=()=>{ $('#modal').classList.remove('show'); editingId=null;
 $('#detailClose').onclick=()=>$('#detailModal').classList.remove('show');
 $('#duplicateEvent').onclick=openDuplicateForm;
 $('#cancelEvent').onclick=cancelSelectedEvent;
+$('#deleteEvent').onclick=openDeleteConfirm;
+$('#deleteCancel').onclick=()=>{
+ $('#deleteModal').classList.remove('show');
+ $('#detailModal').classList.add('show');
+};
+$('#deleteConfirm').onclick=deleteSelectedEvent;
+$('#deleteModal').onclick=(e)=>{
+ if(e.target===$('#deleteModal')){
+  $('#deleteModal').classList.remove('show');
+  $('#detailModal').classList.add('show');
+ }
+};
 $('#editEvent').onclick=openEditForm;
 $('#detailModal').onclick=(e)=>{if(e.target===$('#detailModal'))$('#detailModal').classList.remove('show');};
 $('#save').onclick=async()=>{
