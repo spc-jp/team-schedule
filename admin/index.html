@@ -69,6 +69,10 @@ button.primary{background:var(--orange);color:#fff}.add-schedule{background:#133
 .brand-home{color:inherit;text-decoration:none;display:inline-block;cursor:pointer}.brand-home:focus-visible{outline:2px solid #fff;outline-offset:4px;border-radius:4px}html{scroll-behavior:smooth}
 .brand-home{display:inline-flex;align-items:center;gap:9px}.brand-logo{width:34px;height:34px;object-fit:contain;flex:0 0 34px;border-radius:50%}
 @media(max-width:720px){.brand-home{gap:7px;align-items:center}.brand-logo{width:30px;height:30px;flex-basis:30px}}
+
+.admin-detail{background:#f7f9fc;border-radius:12px;padding:12px 14px;line-height:1.7}
+.admin-detail b{color:var(--navy)}
+.edit-button{background:#133C58!important;color:#fff}
 </style>
 </head>
 <body id="top">
@@ -148,9 +152,20 @@ button.primary{background:var(--orange);color:#fff}.add-schedule{background:#133
  </div>
 </div>
 
+<div class="modal" id="detailModal">
+ <div class="box">
+  <h3>⚾ 予定の詳細</h3>
+  <div class="admin-detail" id="detailContent"></div>
+  <div class="actions">
+   <button class="ghost" id="detailClose">閉じる</button>
+   <button class="edit-button" id="editEvent">✏️ 修正</button>
+  </div>
+ </div>
+</div>
+
 <div class="modal" id="modal">
  <div class="box">
-  <h3>⚾ 予定を登録</h3>
+  <h3 id="formTitle">⚾ 予定を登録</h3>
   <div class="row">
    <div class="field"><label>日付</label><input type="date" id="fdate"></div>
    <div class="field"><label>種類</label><select id="ftype"><option value="game">試合</option><option value="practice">練習</option><option value="exp">体験・行事</option><option value="other">その他</option></select></div>
@@ -183,6 +198,35 @@ let events=[];
 let current=new Date(), filter='all';
 const $=s=>document.querySelector(s), cal=$('#calendar'), list=$('#list');
 let viewMode='calendar';
+let editingId=null;
+let selectedEvent=null;
+
+function clearForm(){
+ $('#fdate').value=''; $('#ftype').value='game'; $('#ftitle').value='';
+ $('#fteam').value='越谷ボーイズ'; $('#fgrade').value='1'; $('#ftime').value='';
+ $('#fplace').value=''; $('#fnote').value='';
+}
+function openNewForm(){
+ editingId=null; selectedEvent=null; clearForm();
+ $('#formTitle').textContent='⚾ 予定を登録'; $('#save').textContent='保存する';
+ $('#fdate').value=ymd(current.getFullYear(),current.getMonth(),new Date().getDate());
+ $('#modal').classList.add('show');
+}
+function openDetail(e){
+ selectedEvent=e;
+ $('#detailContent').innerHTML=`<b>${e.title}</b><br>日付：${e.date}<br>集合：${e.time||'未設定'}<br>チーム：${e.team}<br>学年：${e.grade==='全'?'全学年':e.grade+'年生'}<br>場所：${e.place||'未設定'}<br>連絡：${e.note||'なし'}`;
+ $('#detailModal').classList.add('show');
+}
+function openEditForm(){
+ if(!selectedEvent)return;
+ const e=selectedEvent; editingId=e.id;
+ $('#detailModal').classList.remove('show');
+ $('#formTitle').textContent='✏️ 予定を修正';
+ $('#fdate').value=e.date; $('#ftype').value=e.type; $('#ftitle').value=e.title;
+ $('#fteam').value=e.team; $('#fgrade').value=e.grade; $('#ftime').value=e.time||'';
+ $('#fplace').value=e.place||''; $('#fnote').value=e.note||'';
+ $('#save').textContent='変更を保存'; $('#modal').classList.add('show');
+}
 function setView(mode){
  viewMode=mode;
  const isCal=mode==='calendar';
@@ -240,7 +284,7 @@ function render(){
   events.filter(e=>e.date===key&&visible(e)).forEach(e=>{
    let el=document.createElement('div');el.className=`event ${e.type}`;
    el.innerHTML=`<b>${e.time||''} ${e.title}</b><br>${e.team} / ${e.grade==='全'?'全学年':e.grade+'年'}`;
-   el.onclick=()=>alert(`${e.title}\n${e.date} ${e.time||''}\n${e.team} / ${e.grade==='全'?'全学年':e.grade+'年'}\n場所：${e.place||'未設定'}\n連絡：${e.note||'なし'}`);
+   el.onclick=()=>openDetail(e);
    day.appendChild(el);
   }); cal.appendChild(day);
  }
@@ -248,15 +292,18 @@ function render(){
  .sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time)).forEach(e=>{
    let x=document.createElement('div');x.className='listitem';
    x.innerHTML=`<b>${Number(e.date.slice(5,7))}/${Number(e.date.slice(8,10))}（${'日月火水木金土'[new Date(e.date+'T00:00:00').getDay()]}） ${e.time||''}</b><br>${e.title}<br><small>${e.team} / ${e.grade==='全'?'全学年':e.grade+'年'}　📍${e.place||'未設定'}</small>`;
-   x.onclick=()=>alert(`${e.title}\n集合：${e.time||'未設定'}\n場所：${e.place||'未設定'}\n${e.note||''}`);list.appendChild(x);
+   x.onclick=()=>openDetail(e);list.appendChild(x);
  });
  setView(viewMode);
 }
 document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));b.classList.add('active');filter=b.dataset.filter;render()});
 $('#prev').onclick=()=>{current.setMonth(current.getMonth()-1);render()};$('#next').onclick=()=>{current.setMonth(current.getMonth()+1);render()};
 $('#today').onclick=()=>{let d=new Date();current=new Date(d.getFullYear(),d.getMonth(),1);render()};
-$('#add').onclick=()=>{$('#fdate').value=ymd(current.getFullYear(),current.getMonth(),new Date().getDate());$('#modal').classList.add('show')};
-$('#cancel').onclick=()=>$('#modal').classList.remove('show');
+$('#add').onclick=openNewForm;
+$('#cancel').onclick=()=>{ $('#modal').classList.remove('show'); editingId=null; selectedEvent=null; $('#formTitle').textContent='⚾ 予定を登録'; $('#save').textContent='保存する'; };
+$('#detailClose').onclick=()=>$('#detailModal').classList.remove('show');
+$('#editEvent').onclick=openEditForm;
+$('#detailModal').onclick=(e)=>{if(e.target===$('#detailModal'))$('#detailModal').classList.remove('show');};
 $('#save').onclick=async()=>{
  const e={
   event_date:$('#fdate').value,event_type:$('#ftype').value,title:$('#ftitle').value.trim(),
@@ -264,26 +311,29 @@ $('#save').onclick=async()=>{
   place:$('#fplace').value.trim(),notes:$('#fnote').value.trim()
  };
  if(!e.event_date||!e.title){alert('日付と予定名を入力してください');return}
- const saveBtn=$('#save');
- saveBtn.disabled=true; saveBtn.textContent='保存中…';
+ const saveBtn=$('#save'), isEdit=editingId!==null, targetId=editingId;
+ saveBtn.disabled=true; saveBtn.textContent=isEdit?'変更を保存中…':'保存中…';
  try{
-  const res=await fetch(API_URL,{
-   method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(e)
+  const res=await fetch(isEdit?`${API_URL}/${targetId}`:API_URL,{
+   method:isEdit?'PUT':'POST',
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify(e)
   });
   const data=await res.json();
-  if(!res.ok || !data.ok) throw new Error(data.error||'予定の登録に失敗しました');
+  if(!res.ok||!data.ok) throw new Error(data.error||(isEdit?'予定の修正に失敗しました':'予定の登録に失敗しました'));
   $('#modal').classList.remove('show');
   current=new Date(e.event_date+'T00:00:00'); current.setDate(1);
-  $('#ftitle').value=''; $('#ftime').value=''; $('#fplace').value=''; $('#fnote').value='';
+  clearForm(); editingId=null; selectedEvent=null; $('#formTitle').textContent='⚾ 予定を登録';
   await loadEvents();
-  alert('予定を登録しました');
+  alert(isEdit?'予定を修正しました':'予定を登録しました');
  }catch(error){
   console.error(error);
-  alert('予定を登録できませんでした。通信状況を確認して、もう一度お試しください。');
+  alert(isEdit?'予定を修正できませんでした。通信状況を確認して、もう一度お試しください。':'予定を登録できませんでした。通信状況を確認して、もう一度お試しください。');
  }finally{
   saveBtn.disabled=false; saveBtn.textContent='保存する';
  }
 };
+
 $('#helpBtn').onclick=()=>$('#helpModal').classList.add('show');
 $('#helpClose').onclick=()=>$('#helpModal').classList.remove('show');
 $('#helpOk').onclick=()=>$('#helpModal').classList.remove('show');
