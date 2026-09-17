@@ -189,6 +189,17 @@ main,.panel,.toolbar,.filters,.row,.field,.modal,.box{min-width:0}
   .date-picker-week,.date-picker-grid{gap:2px}
 }
 
+
+/* ===== 監督・コーチ向け簡単入力 ===== */
+#ftitle,#fplace{display:none}
+#ftitle.show-manual,#fplace.show-manual{display:block}
+.save-wide{min-height:50px;padding:12px 18px;font-size:16px}
+@media(max-width:720px){
+  #modal .actions{display:grid;grid-template-columns:auto 1fr;align-items:stretch}
+  #modal .actions button{min-height:52px}
+  #modal .save-wide{width:100%;font-size:16px}
+}
+
 </style>
 </head>
 <body id="top">
@@ -305,17 +316,47 @@ main,.panel,.toolbar,.filters,.row,.field,.modal,.box{min-width:0}
     </div>
    <div class="field"><label>種類</label><select id="ftype"><option value="game">試合</option><option value="practice">練習</option><option value="exp">体験・行事</option><option value="other">その他</option></select></div>
   </div>
-  <div class="field"><label>予定名</label><input id="ftitle" placeholder="例：練習試合 vs ○○ボーイズ"></div>
+  <div class="field">
+  <label>予定名</label>
+  <select id="ftitlePreset">
+    <option value="">選択してください</option>
+    <option value="通常練習">通常練習</option>
+    <option value="公式戦">公式戦</option>
+    <option value="練習試合">練習試合</option>
+    <option value="体験会">体験会</option>
+    <option value="other">その他（手入力）</option>
+  </select>
+  <input id="ftitle" placeholder="対戦相手など必要な場合だけ入力" style="margin-top:7px">
+</div>
   <div class="row">
    <div class="field"><label>チーム</label><select id="fteam"><option>越谷ボーイズ</option><option>越谷中央ボーイズ</option><option>全体</option></select></div>
    <div class="field"><label>学年</label><select id="fgrade"><option value="1">1年生</option><option value="2">2年生</option><option value="3">3年生</option><option value="全">全学年</option></select></div>
   </div>
   <div class="row">
    <div class="field"><label>集合時間</label><input type="time" id="ftime"></div>
-   <div class="field"><label>場所</label><input id="fplace" placeholder="例：越谷市民球場"></div>
+   <div class="field">
+  <label>場所</label>
+  <select id="fplacePreset">
+    <option value="">選択してください</option>
+    <option value="専用グラウンド">専用グラウンド</option>
+    <option value="越谷市民球場">越谷市民球場</option>
+    <option value="other">その他（手入力）</option>
+  </select>
+  <input id="fplace" placeholder="その他の場所を入力" style="margin-top:7px">
+</div>
   </div>
-  <div class="field"><label>持ち物・連絡事項</label><textarea id="fnote" placeholder="例：ユニフォーム、昼食、水筒"></textarea></div>
-  <div class="actions"><button class="ghost" id="cancel">キャンセル</button><button class="primary" id="save">保存する</button></div>
+  <div class="row">
+  <div class="field"><label>🎒 持ち物①</label><select id="fitem1"><option value="">選択なし</option>
+<option>昼食</option><option>水筒</option><option>試合用ユニフォーム</option>
+<option>練習着</option><option>グローブ</option><option>スパイク</option>
+<option>着替え</option><option>雨具</option><option>防寒具</option><option value="その他">その他</option></select></div>
+  <div class="field"><label>🎒 持ち物②</label><select id="fitem2"><option value="">選択なし</option>
+<option>昼食</option><option>水筒</option><option>試合用ユニフォーム</option>
+<option>練習着</option><option>グローブ</option><option>スパイク</option>
+<option>着替え</option><option>雨具</option><option>防寒具</option><option value="その他">その他</option></select></div>
+</div>
+<div class="field"><label>📢 連絡事項・その他</label><textarea id="fnote" placeholder="必要な場合だけ入力してください"></textarea></div>
+  <div class="actions"><button class="ghost" id="cancel">キャンセル</button><button class="primary save-wide" id="save">この予定を登録する</button></div>
  </div>
 </div>
 
@@ -425,20 +466,72 @@ $('#datePickerClose').onclick=()=>$('#datePickerModal').classList.remove('show')
 $('#datePickerModal').onclick=e=>{if(e.target===$('#datePickerModal'))$('#datePickerModal').classList.remove('show')};
 
 
+
+function splitStoredNote(note){
+ const raw=note||'';
+ let item1='',item2='',message=raw;
+ const m=raw.match(/^【持ち物】(.*?)(?:\n【連絡事項】([\s\S]*))?$/);
+ if(m){
+  const parts=(m[1]||'').split('・').map(s=>s.trim()).filter(Boolean);
+  item1=parts[0]||''; item2=parts[1]||'';
+  message=m[2]||'';
+ }
+ return {item1,item2,message};
+}
+function buildStoredNote(){
+ const items=[$('#fitem1').value,$('#fitem2').value].filter(Boolean);
+ const message=$('#fnote').value.trim();
+ let parts=[];
+ if(items.length) parts.push('【持ち物】'+items.join('・'));
+ if(message) parts.push('【連絡事項】'+message);
+ return parts.join('\n');
+}
+function setPresetOrManual(selectId,inputId,value){
+ const select=$(selectId), input=$(inputId);
+ const option=[...select.options].find(o=>o.value===value && o.value!=='other');
+ if(option){
+  select.value=value; input.value=''; input.classList.remove('show-manual');
+ }else if(value){
+  select.value='other'; input.value=value; input.classList.add('show-manual');
+ }else{
+  select.value=''; input.value=''; input.classList.remove('show-manual');
+ }
+}
+function resolvedPresetValue(selectId,inputId){
+ const v=$(selectId).value;
+ return v==='other'?$(inputId).value.trim():v;
+}
+function syncManualField(selectId,inputId){
+ const manual=$(selectId).value==='other';
+ $(inputId).classList.toggle('show-manual',manual);
+ if(manual) setTimeout(()=>$(inputId).focus(),0);
+ else $(inputId).value='';
+}
+$('#ftitlePreset').onchange=()=>syncManualField('#ftitlePreset','#ftitle');
+$('#fplacePreset').onchange=()=>syncManualField('#fplacePreset','#fplace');
+
 function clearForm(){
- $('#fdate').value=''; updateDatePickerText(); $('#ftype').value='game'; $('#ftitle').value='';
+ $('#fdate').value=''; updateDatePickerText(); $('#ftype').value='game'; setPresetOrManual('#ftitlePreset','#ftitle','');
  $('#fteam').value='越谷ボーイズ'; $('#fgrade').value='1'; $('#ftime').value='';
- $('#fplace').value=''; $('#fnote').value='';
+ setPresetOrManual('#fplacePreset','#fplace',''); $('#fitem1').value=''; $('#fitem2').value=''; $('#fnote').value='';
 }
 function openNewForm(){
  editingId=null; selectedEvent=null; clearForm();
- $('#formTitle').textContent='⚾ 予定を登録'; $('#save').textContent='保存する';
+ $('#formTitle').textContent='⚾ 予定を登録'; $('#save').textContent='この予定を登録する';
  $('#fdate').value=ymd(current.getFullYear(),current.getMonth(),new Date().getDate()); updateDatePickerText();
  $('#modal').classList.add('show');
 }
+function formatNoteForDetail(note){
+ const n=splitStoredNote(note||'');
+ if((note||'').startsWith('【持ち物】')){
+  const items=[n.item1,n.item2].filter(Boolean).join('・');
+  return `${items?`🎒 持ち物：${items}<br>`:''}${n.message?`📢 連絡事項：${n.message}`:''}` || 'なし';
+ }
+ return note||'なし';
+}
 function openDetail(e){
  selectedEvent=e;
- $('#detailContent').innerHTML=`<b>${e.title}</b><br>日付：${e.date}<br>集合：${e.time||'未設定'}<br>チーム：${e.team}<br>学年：${e.grade==='全'?'全学年':e.grade+'年生'}<br>場所：${e.place||'未設定'}<br>連絡：${e.note||'なし'}`;
+ $('#detailContent').innerHTML=`<b>${e.title}</b><br>日付：${e.date}<br>集合：${e.time||'未設定'}<br>チーム：${e.team}<br>学年：${e.grade==='全'?'全学年':e.grade+'年生'}<br>場所：${e.place||'未設定'}<br>連絡：<br>${formatNoteForDetail(e.note)}`;
  $('#detailModal').classList.add('show');
 }
 function openDuplicateForm(){
@@ -449,13 +542,14 @@ function openDuplicateForm(){
  $('#formTitle').textContent='📋 予定を複製';
  $('#fdate').value=e.date; updateDatePickerText();
  $('#ftype').value=e.type;
- $('#ftitle').value=e.title;
+ setPresetOrManual('#ftitlePreset','#ftitle',e.title);
  $('#fteam').value=e.team;
  $('#fgrade').value=e.grade;
  $('#ftime').value=e.time||'';
- $('#fplace').value=e.place||'';
- $('#fnote').value=e.note||'';
- $('#save').textContent='複製して登録';
+ setPresetOrManual('#fplacePreset','#fplace',e.place||'');
+ const dupNote=splitStoredNote(e.note||'');
+ $('#fitem1').value=dupNote.item1; $('#fitem2').value=dupNote.item2; $('#fnote').value=dupNote.message;
+ $('#save').textContent='複製して登録する';
  $('#modal').classList.add('show');
 }
 
@@ -535,10 +629,12 @@ function openEditForm(){
  const e=selectedEvent; editingId=e.id;
  $('#detailModal').classList.remove('show');
  $('#formTitle').textContent='✏️ 予定を修正';
- $('#fdate').value=e.date; updateDatePickerText(); $('#ftype').value=e.type; $('#ftitle').value=e.title;
+ $('#fdate').value=e.date; updateDatePickerText(); $('#ftype').value=e.type; setPresetOrManual('#ftitlePreset','#ftitle',e.title);
  $('#fteam').value=e.team; $('#fgrade').value=e.grade; $('#ftime').value=e.time||'';
- $('#fplace').value=e.place||''; $('#fnote').value=e.note||'';
- $('#save').textContent='変更を保存'; $('#modal').classList.add('show');
+ setPresetOrManual('#fplacePreset','#fplace',e.place||'');
+ const editNote=splitStoredNote(e.note||'');
+ $('#fitem1').value=editNote.item1; $('#fitem2').value=editNote.item2; $('#fnote').value=editNote.message;
+ $('#save').textContent='変更を保存する'; $('#modal').classList.add('show');
 }
 function setView(mode){
  viewMode=mode;
@@ -619,7 +715,7 @@ document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{document.querySelec
 $('#prev').onclick=()=>{current.setMonth(current.getMonth()-1);render()};$('#next').onclick=()=>{current.setMonth(current.getMonth()+1);render()};
 $('#today').onclick=()=>{let d=new Date();current=new Date(d.getFullYear(),d.getMonth(),1);render()};
 $('#add').onclick=openNewForm;
-$('#cancel').onclick=()=>{ $('#modal').classList.remove('show'); editingId=null; selectedEvent=null; $('#formTitle').textContent='⚾ 予定を登録'; $('#save').textContent='保存する'; };
+$('#cancel').onclick=()=>{ $('#modal').classList.remove('show'); editingId=null; selectedEvent=null; $('#formTitle').textContent='⚾ 予定を登録'; $('#save').textContent='この予定を登録する'; };
 $('#detailClose').onclick=()=>$('#detailModal').classList.remove('show');
 $('#duplicateEvent').onclick=openDuplicateForm;
 $('#cancelEvent').onclick=cancelSelectedEvent;
@@ -639,9 +735,9 @@ $('#editEvent').onclick=openEditForm;
 $('#detailModal').onclick=(e)=>{if(e.target===$('#detailModal'))$('#detailModal').classList.remove('show');};
 $('#save').onclick=async()=>{
  const e={
-  event_date:$('#fdate').value,event_type:$('#ftype').value,title:$('#ftitle').value.trim(),
+  event_date:$('#fdate').value,event_type:$('#ftype').value,title:resolvedPresetValue('#ftitlePreset','#ftitle'),
   team:$('#fteam').value,grade:$('#fgrade').value,meeting_time:$('#ftime').value,
-  place:$('#fplace').value.trim(),notes:$('#fnote').value.trim()
+  place:resolvedPresetValue('#fplacePreset','#fplace'),notes:buildStoredNote()
  };
  if(!e.event_date||!e.title){alert('日付と予定名を入力してください');return}
  const saveBtn=$('#save'), isEdit=editingId!==null, targetId=editingId;
@@ -663,7 +759,7 @@ $('#save').onclick=async()=>{
   console.error(error);
   alert(isEdit?'予定を修正できませんでした。通信状況を確認して、もう一度お試しください。':'予定を登録できませんでした。通信状況を確認して、もう一度お試しください。');
  }finally{
-  saveBtn.disabled=false; saveBtn.textContent='保存する';
+  saveBtn.disabled=false; saveBtn.textContent=isEdit?'変更を保存する':'この予定を登録する';
  }
 };
 
