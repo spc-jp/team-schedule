@@ -158,6 +158,37 @@ main,.panel,.toolbar,.filters,.row,.field,.modal,.box{min-width:0}
   .detail-actions{width:100%;max-width:100%}
 }
 
+
+/* ===== 月曜始まり・日付選択カレンダー ===== */
+.date-picker-button{
+  width:100%;min-height:46px;display:flex;align-items:center;justify-content:space-between;
+  gap:10px;padding:11px;border:1px solid var(--line);border-radius:10px;
+  background:#fff;color:var(--text);font-weight:500;text-align:left;
+}
+.date-picker-button:focus{outline:2px solid #133C5833;border-color:#133C58}
+.date-picker-shell{padding-top:4px}
+.date-picker-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.date-picker-head strong{font-size:17px;text-align:center;flex:1}
+.date-picker-head button{background:#edf2f7;color:#133C58;min-width:44px}
+.date-picker-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;margin-bottom:4px}
+.date-picker-week div{text-align:center;font-size:12px;font-weight:800;padding:6px 0}
+.date-picker-week div:nth-child(6){color:#2563a6}.date-picker-week div:nth-child(7){color:#b42318}
+.date-picker-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.date-picker-day{
+  min-width:0;aspect-ratio:1/1;padding:0;border-radius:9px;background:#fff;color:var(--text);
+  border:1px solid #edf0f4;font-weight:700;font-size:14px;
+}
+.date-picker-day.outside{color:#aab1bd;background:#fafafa}
+.date-picker-day.saturday{background:#eef7ff}
+.date-picker-day.sunday{background:#fff1f1}
+.date-picker-day.selected{background:#133C58!important;color:#fff!important;border-color:#133C58}
+.date-picker-day.today{box-shadow:inset 0 0 0 2px #f28b21}
+.date-picker-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+@media(max-width:720px){
+  .date-picker-day{font-size:14px;border-radius:8px}
+  .date-picker-week,.date-picker-grid{gap:2px}
+}
+
 </style>
 </head>
 <body id="top">
@@ -266,7 +297,12 @@ main,.panel,.toolbar,.filters,.row,.field,.modal,.box{min-width:0}
  <div class="box">
   <h3 id="formTitle">⚾ 予定を登録</h3>
   <div class="row">
-   <div class="field"><label>日付</label><input type="date" id="fdate"></div>
+   <div class="field"><label>日付</label>
+      <button type="button" id="datePickerButton" class="date-picker-button" aria-label="日付を選択">
+        <span id="datePickerText">日付を選択してください</span><span>📅</span>
+      </button>
+      <input type="hidden" id="fdate">
+    </div>
    <div class="field"><label>種類</label><select id="ftype"><option value="game">試合</option><option value="practice">練習</option><option value="exp">体験・行事</option><option value="other">その他</option></select></div>
   </div>
   <div class="field"><label>予定名</label><input id="ftitle" placeholder="例：練習試合 vs ○○ボーイズ"></div>
@@ -280,6 +316,27 @@ main,.panel,.toolbar,.filters,.row,.field,.modal,.box{min-width:0}
   </div>
   <div class="field"><label>持ち物・連絡事項</label><textarea id="fnote" placeholder="例：ユニフォーム、昼食、水筒"></textarea></div>
   <div class="actions"><button class="ghost" id="cancel">キャンセル</button><button class="primary" id="save">保存する</button></div>
+ </div>
+</div>
+
+
+<div class="modal" id="datePickerModal">
+ <div class="box">
+  <div class="date-picker-shell">
+   <div class="date-picker-head">
+    <button type="button" id="datePickerPrev" aria-label="前の月">‹</button>
+    <strong id="datePickerTitle"></strong>
+    <button type="button" id="datePickerNext" aria-label="次の月">›</button>
+   </div>
+   <div class="date-picker-week">
+    <div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div><div>日</div>
+   </div>
+   <div class="date-picker-grid" id="datePickerGrid"></div>
+   <div class="date-picker-actions">
+    <button type="button" class="ghost" id="datePickerToday">今日</button>
+    <button type="button" class="ghost" id="datePickerClose">閉じる</button>
+   </div>
+  </div>
  </div>
 </div>
 
@@ -300,15 +357,83 @@ let viewMode='calendar';
 let editingId=null;
 let selectedEvent=null;
 
+let datePickerCurrent=new Date();
+
+function updateDatePickerText(){
+ const value=$('#fdate').value;
+ if(!value){
+  $('#datePickerText').textContent='日付を選択してください';
+  return;
+ }
+ const d=new Date(value+'T00:00:00');
+ const dow='日月火水木金土'[d.getDay()];
+ $('#datePickerText').textContent=`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${dow}）`;
+}
+
+function openDatePicker(){
+ const value=$('#fdate').value;
+ const base=value?new Date(value+'T00:00:00'):new Date();
+ datePickerCurrent=new Date(base.getFullYear(),base.getMonth(),1);
+ renderDatePicker();
+ $('#datePickerModal').classList.add('show');
+}
+
+function renderDatePicker(){
+ const y=datePickerCurrent.getFullYear(),m=datePickerCurrent.getMonth();
+ $('#datePickerTitle').textContent=`${y}年 ${m+1}月`;
+ const grid=$('#datePickerGrid'); grid.innerHTML='';
+ const first=new Date(y,m,1);
+ const offset=(first.getDay()+6)%7; // 月曜=0
+ const start=new Date(y,m,1-offset);
+ const selected=$('#fdate').value;
+ const now=new Date();
+ const today=ymd(now.getFullYear(),now.getMonth(),now.getDate());
+
+ for(let i=0;i<42;i++){
+  const d=new Date(start); d.setDate(start.getDate()+i);
+  const key=ymd(d.getFullYear(),d.getMonth(),d.getDate());
+  const dow=d.getDay();
+  const btn=document.createElement('button');
+  btn.type='button';
+  btn.className='date-picker-day'
+    +(d.getMonth()!==m?' outside':'')
+    +(dow===6?' saturday':'')
+    +(dow===0?' sunday':'')
+    +(key===selected?' selected':'')
+    +(key===today?' today':'');
+  btn.textContent=d.getDate();
+  btn.setAttribute('aria-label',`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`);
+  btn.onclick=()=>{
+   $('#fdate').value=key;
+   updateDatePickerText();
+   $('#datePickerModal').classList.remove('show');
+  };
+  grid.appendChild(btn);
+ }
+}
+
+$('#datePickerButton').onclick=openDatePicker;
+$('#datePickerPrev').onclick=()=>{datePickerCurrent.setMonth(datePickerCurrent.getMonth()-1);renderDatePicker()};
+$('#datePickerNext').onclick=()=>{datePickerCurrent.setMonth(datePickerCurrent.getMonth()+1);renderDatePicker()};
+$('#datePickerToday').onclick=()=>{
+ const d=new Date();
+ $('#fdate').value=ymd(d.getFullYear(),d.getMonth(),d.getDate());
+ updateDatePickerText();
+ $('#datePickerModal').classList.remove('show');
+};
+$('#datePickerClose').onclick=()=>$('#datePickerModal').classList.remove('show');
+$('#datePickerModal').onclick=e=>{if(e.target===$('#datePickerModal'))$('#datePickerModal').classList.remove('show')};
+
+
 function clearForm(){
- $('#fdate').value=''; $('#ftype').value='game'; $('#ftitle').value='';
+ $('#fdate').value=''; updateDatePickerText(); $('#ftype').value='game'; $('#ftitle').value='';
  $('#fteam').value='越谷ボーイズ'; $('#fgrade').value='1'; $('#ftime').value='';
  $('#fplace').value=''; $('#fnote').value='';
 }
 function openNewForm(){
  editingId=null; selectedEvent=null; clearForm();
  $('#formTitle').textContent='⚾ 予定を登録'; $('#save').textContent='保存する';
- $('#fdate').value=ymd(current.getFullYear(),current.getMonth(),new Date().getDate());
+ $('#fdate').value=ymd(current.getFullYear(),current.getMonth(),new Date().getDate()); updateDatePickerText();
  $('#modal').classList.add('show');
 }
 function openDetail(e){
@@ -322,7 +447,7 @@ function openDuplicateForm(){
  editingId=null;
  $('#detailModal').classList.remove('show');
  $('#formTitle').textContent='📋 予定を複製';
- $('#fdate').value=e.date;
+ $('#fdate').value=e.date; updateDatePickerText();
  $('#ftype').value=e.type;
  $('#ftitle').value=e.title;
  $('#fteam').value=e.team;
@@ -410,7 +535,7 @@ function openEditForm(){
  const e=selectedEvent; editingId=e.id;
  $('#detailModal').classList.remove('show');
  $('#formTitle').textContent='✏️ 予定を修正';
- $('#fdate').value=e.date; $('#ftype').value=e.type; $('#ftitle').value=e.title;
+ $('#fdate').value=e.date; updateDatePickerText(); $('#ftype').value=e.type; $('#ftitle').value=e.title;
  $('#fteam').value=e.team; $('#fgrade').value=e.grade; $('#ftime').value=e.time||'';
  $('#fplace').value=e.place||''; $('#fnote').value=e.note||'';
  $('#save').textContent='変更を保存'; $('#modal').classList.add('show');
