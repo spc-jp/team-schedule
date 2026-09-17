@@ -73,6 +73,8 @@ button.primary{background:var(--orange);color:#fff}.add-schedule{background:#133
 .admin-detail{background:#f7f9fc;border-radius:12px;padding:12px 14px;line-height:1.7}
 .admin-detail b{color:var(--navy)}
 .edit-button{background:#133C58!important;color:#fff}
+
+.cancel-event-button{background:#fff1f1!important;color:#b42318!important;border:1px solid #f3c7c7!important}
 </style>
 </head>
 <body id="top">
@@ -159,6 +161,7 @@ button.primary{background:var(--orange);color:#fff}.add-schedule{background:#133
   <div class="actions">
    <button class="ghost" id="detailClose">閉じる</button>
    <button class="ghost" id="duplicateEvent">📋 複製</button>
+   <button class="cancel-event-button" id="cancelEvent">🚫 中止</button>
    <button class="edit-button" id="editEvent">✏️ 修正</button>
   </div>
  </div>
@@ -234,6 +237,44 @@ function openDuplicateForm(){
  $('#fnote').value=e.note||'';
  $('#save').textContent='複製して登録';
  $('#modal').classList.add('show');
+}
+
+async function cancelSelectedEvent(){
+ if(!selectedEvent)return;
+ const e=selectedEvent;
+ if(e.title.startsWith('【中止】')){
+  alert('この予定はすでに中止になっています');
+  return;
+ }
+ if(!confirm(`${e.date}「${e.title}」を中止にしますか？\n予定は削除せず、公開画面にも中止として残します。`))return;
+
+ const payload={
+  event_date:e.date,
+  event_type:e.type,
+  title:`【中止】 ${e.title}`,
+  team:e.team,
+  grade:e.grade,
+  meeting_time:e.time||'',
+  place:e.place||'',
+  notes:e.note||''
+ };
+
+ try{
+  const res=await fetch(`${API_URL}/${e.id}`,{
+   method:'PUT',
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify(payload)
+  });
+  const data=await res.json();
+  if(!res.ok||!data.ok)throw new Error(data.error||'予定を中止にできませんでした');
+  $('#detailModal').classList.remove('show');
+  selectedEvent=null;
+  await loadEvents();
+  alert('予定を「中止」にしました');
+ }catch(error){
+  console.error(error);
+  alert('予定を中止にできませんでした。通信状況を確認して、もう一度お試しください。');
+ }
 }
 
 function openEditForm(){
@@ -322,6 +363,7 @@ $('#add').onclick=openNewForm;
 $('#cancel').onclick=()=>{ $('#modal').classList.remove('show'); editingId=null; selectedEvent=null; $('#formTitle').textContent='⚾ 予定を登録'; $('#save').textContent='保存する'; };
 $('#detailClose').onclick=()=>$('#detailModal').classList.remove('show');
 $('#duplicateEvent').onclick=openDuplicateForm;
+$('#cancelEvent').onclick=cancelSelectedEvent;
 $('#editEvent').onclick=openEditForm;
 $('#detailModal').onclick=(e)=>{if(e.target===$('#detailModal'))$('#detailModal').classList.remove('show');};
 $('#save').onclick=async()=>{
