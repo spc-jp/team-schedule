@@ -115,6 +115,49 @@ button.primary{background:var(--orange);color:#fff}.add-schedule{background:#133
  .detail-actions{gap:9px}
  .detail-actions button{min-height:52px;font-size:16px}
 }
+
+/* ===== スマホ横ズレ防止 ===== */
+html,body{max-width:100%;overflow-x:hidden}
+img,svg{max-width:100%}
+main,.panel,.toolbar,.filters,.row,.field,.modal,.box{min-width:0}
+.field input,.field select,.field textarea{
+  display:block;
+  max-width:100%;
+  min-width:0;
+}
+@media(max-width:720px){
+  body{width:100%;overflow-x:hidden}
+  main{width:100%;max-width:100%;padding-left:6px;padding-right:6px}
+  .panel{width:100%;max-width:100%;overflow:hidden}
+  .toolbar,.filters{max-width:100%}
+  .monthnav{max-width:100%;flex-wrap:wrap}
+  .modal{padding:10px;overflow-x:hidden}
+  .modal .box{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    margin:0;
+    padding:18px 14px;
+    overflow-x:hidden;
+  }
+  .row{grid-template-columns:minmax(0,1fr)}
+  .field{width:100%;max-width:100%;min-width:0}
+  .field input,.field select,.field textarea{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+  }
+  input[type="date"],input[type="time"]{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    -webkit-appearance:none;
+    appearance:none;
+  }
+  .actions{max-width:100%;flex-wrap:wrap}
+  .detail-actions{width:100%;max-width:100%}
+}
+
 </style>
 </head>
 <body id="top">
