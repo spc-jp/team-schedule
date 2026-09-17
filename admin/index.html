@@ -158,6 +158,7 @@ button.primary{background:var(--orange);color:#fff}.add-schedule{background:#133
   <div class="admin-detail" id="detailContent"></div>
   <div class="actions">
    <button class="ghost" id="detailClose">閉じる</button>
+   <button class="ghost" id="duplicateEvent">📋 複製</button>
    <button class="edit-button" id="editEvent">✏️ 修正</button>
   </div>
  </div>
@@ -217,6 +218,24 @@ function openDetail(e){
  $('#detailContent').innerHTML=`<b>${e.title}</b><br>日付：${e.date}<br>集合：${e.time||'未設定'}<br>チーム：${e.team}<br>学年：${e.grade==='全'?'全学年':e.grade+'年生'}<br>場所：${e.place||'未設定'}<br>連絡：${e.note||'なし'}`;
  $('#detailModal').classList.add('show');
 }
+function openDuplicateForm(){
+ if(!selectedEvent)return;
+ const e=selectedEvent;
+ editingId=null;
+ $('#detailModal').classList.remove('show');
+ $('#formTitle').textContent='📋 予定を複製';
+ $('#fdate').value=e.date;
+ $('#ftype').value=e.type;
+ $('#ftitle').value=e.title;
+ $('#fteam').value=e.team;
+ $('#fgrade').value=e.grade;
+ $('#ftime').value=e.time||'';
+ $('#fplace').value=e.place||'';
+ $('#fnote').value=e.note||'';
+ $('#save').textContent='複製して登録';
+ $('#modal').classList.add('show');
+}
+
 function openEditForm(){
  if(!selectedEvent)return;
  const e=selectedEvent; editingId=e.id;
@@ -302,6 +321,7 @@ $('#today').onclick=()=>{let d=new Date();current=new Date(d.getFullYear(),d.get
 $('#add').onclick=openNewForm;
 $('#cancel').onclick=()=>{ $('#modal').classList.remove('show'); editingId=null; selectedEvent=null; $('#formTitle').textContent='⚾ 予定を登録'; $('#save').textContent='保存する'; };
 $('#detailClose').onclick=()=>$('#detailModal').classList.remove('show');
+$('#duplicateEvent').onclick=openDuplicateForm;
 $('#editEvent').onclick=openEditForm;
 $('#detailModal').onclick=(e)=>{if(e.target===$('#detailModal'))$('#detailModal').classList.remove('show');};
 $('#save').onclick=async()=>{
