@@ -83,6 +83,12 @@ header{padding-top:14px;padding-bottom:14px}
 .brand h1{margin:0}
 @media(max-width:720px){header{padding-top:12px;padding-bottom:12px}}
 
+
+/* 中止予定：公開画面で一目で分かる表示 */
+.event.cancelled{background:#fff0f0!important;border-left-color:#e5484d!important;color:#b42318!important}
+.listitem.cancelled{background:#fff0f0;color:#b42318;border-left:4px solid #e5484d;padding-left:10px}
+.listitem.cancelled b{color:#b42318!important}
+
 </style>
 </head>
 <body id="top">
@@ -210,16 +216,22 @@ function render(){
   day.className='day'+dayType+(dt.getMonth()!=m?' muted':'');
   day.innerHTML=`<div class="date">${dt.getDate()}${holidays2026[key]?`<span class="holiday-name">${holidays2026[key]}</span>`:''}</div>`;
   events.filter(e=>e.date===key&&visible(e)).forEach(e=>{
-   let el=document.createElement('div');el.className=`event ${e.type}`;
-   el.innerHTML=`<b>${e.time||''} ${e.title}</b><br>${e.team} / ${e.grade==='全'?'全学年':e.grade+'年'}`;
+   let el=document.createElement('div');
+   const isCancelled=e.title.startsWith('【中止】');
+   const displayTitle=isCancelled?'🚫 中止　'+e.title.replace(/^【中止】\s*/,''):e.title;
+   el.className=`event ${e.type}${isCancelled?' cancelled':''}`;
+   el.innerHTML=`<b>${isCancelled?'':(e.time||'')+' '}${displayTitle}</b><br>${e.team} / ${e.grade==='全'?'全学年':e.grade+'年'}`;
    el.onclick=()=>alert(`${e.title}\n${e.date} ${e.time||''}\n${e.team} / ${e.grade==='全'?'全学年':e.grade+'年'}\n場所：${e.place||'未設定'}\n連絡：${e.note||'なし'}`);
    day.appendChild(el);
   }); cal.appendChild(day);
  }
  events.filter(e=>{let d=new Date(e.date+'T00:00:00');return d.getFullYear()===y&&d.getMonth()===m&&visible(e)})
  .sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time)).forEach(e=>{
-   let x=document.createElement('div');x.className='listitem';
-   x.innerHTML=`<b>${Number(e.date.slice(5,7))}/${Number(e.date.slice(8,10))}（${'日月火水木金土'[new Date(e.date+'T00:00:00').getDay()]}） ${e.time||''}</b><br>${e.title}<br><small>${e.team} / ${e.grade==='全'?'全学年':e.grade+'年'}　📍${e.place||'未設定'}</small>`;
+   let x=document.createElement('div');
+   const isCancelled=e.title.startsWith('【中止】');
+   const displayTitle=isCancelled?'🚫 中止　'+e.title.replace(/^【中止】\s*/,''):e.title;
+   x.className='listitem'+(isCancelled?' cancelled':'');
+   x.innerHTML=`<b>${Number(e.date.slice(5,7))}/${Number(e.date.slice(8,10))}（${'日月火水木金土'[new Date(e.date+'T00:00:00').getDay()]}） ${isCancelled?'':(e.time||'')}</b><br>${displayTitle}<br><small>${e.team} / ${e.grade==='全'?'全学年':e.grade+'年'}　📍${e.place||'未設定'}</small>`;
    x.onclick=()=>alert(`${e.title}\n集合：${e.time||'未設定'}\n場所：${e.place||'未設定'}\n${e.note||''}`);list.appendChild(x);
  });
  setView(viewMode);
