@@ -191,8 +191,8 @@ main,.panel,.toolbar,.filters,.row,.field,.modal,.box{min-width:0}
 
 
 /* ===== 監督・コーチ向け簡単入力 ===== */
-#ftitle,#fplace{display:none}
-#ftitle.show-manual,#fplace.show-manual{display:block}
+#ftitle,#fplace,#fitemManual{display:none}
+#ftitle.show-manual,#fplace.show-manual,#fitemManual.show-manual{display:block}
 .save-wide{min-height:50px;padding:12px 18px;font-size:16px}
 @media(max-width:720px){
   #modal .actions{display:grid;grid-template-columns:auto 1fr;align-items:stretch}
@@ -338,22 +338,22 @@ main,.panel,.toolbar,.filters,.row,.field,.modal,.box{min-width:0}
   <label>場所</label>
   <select id="fplacePreset">
     <option value="">選択してください</option>
-    <option value="専用グラウンド">専用グラウンド</option>
-    <option value="越谷市民球場">越谷市民球場</option>
+    <option value="越谷ボーイズグラウンド">越谷ボーイズグラウンド</option>
+    <option value="グランド専用球場">グランド専用球場</option>
     <option value="other">その他（手入力）</option>
   </select>
   <input id="fplace" placeholder="その他の場所を入力" style="margin-top:7px">
 </div>
   </div>
-  <div class="row">
-  <div class="field"><label>🎒 持ち物①</label><select id="fitem1"><option value="">選択なし</option>
-<option>昼食</option><option>水筒</option><option>試合用ユニフォーム</option>
-<option>練習着</option><option>グローブ</option><option>スパイク</option>
-<option>着替え</option><option>雨具</option><option>防寒具</option><option value="その他">その他</option></select></div>
-  <div class="field"><label>🎒 持ち物②</label><select id="fitem2"><option value="">選択なし</option>
-<option>昼食</option><option>水筒</option><option>試合用ユニフォーム</option>
-<option>練習着</option><option>グローブ</option><option>スパイク</option>
-<option>着替え</option><option>雨具</option><option>防寒具</option><option value="その他">その他</option></select></div>
+  <div class="field">
+  <label>🎒 持ち物</label>
+  <select id="fitemPreset">
+    <option value="">選択なし</option>
+    <option value="練習着、昼食、水筒、着替え">練習着、昼食、水筒、着替え</option>
+    <option value="試合用ユニフォーム、昼食、水筒、着替え">試合用ユニフォーム、昼食、水筒、着替え</option>
+    <option value="other">その他（手入力）</option>
+  </select>
+  <input id="fitemManual" placeholder="持ち物を入力" style="margin-top:7px">
 </div>
 <div class="field"><label>📢 連絡事項・その他</label><textarea id="fnote" placeholder="必要な場合だけ入力してください"></textarea></div>
   <div class="actions"><button class="ghost" id="cancel">キャンセル</button><button class="primary save-wide" id="save">この予定を登録する</button></div>
@@ -469,20 +469,20 @@ $('#datePickerModal').onclick=e=>{if(e.target===$('#datePickerModal'))$('#datePi
 
 function splitStoredNote(note){
  const raw=note||'';
- let item1='',item2='',message=raw;
+ let item='',message=raw;
  const m=raw.match(/^【持ち物】(.*?)(?:\n【連絡事項】([\s\S]*))?$/);
  if(m){
-  const parts=(m[1]||'').split('・').map(s=>s.trim()).filter(Boolean);
-  item1=parts[0]||''; item2=parts[1]||'';
+  item=(m[1]||'').trim();
   message=m[2]||'';
  }
- return {item1,item2,message};
+ return {item,message};
 }
 function buildStoredNote(){
- const items=[$('#fitem1').value,$('#fitem2').value].filter(Boolean);
+ const preset=$('#fitemPreset').value;
+ const item=preset==='other'?$('#fitemManual').value.trim():preset;
  const message=$('#fnote').value.trim();
  let parts=[];
- if(items.length) parts.push('【持ち物】'+items.join('・'));
+ if(item) parts.push('【持ち物】'+item);
  if(message) parts.push('【連絡事項】'+message);
  return parts.join('\n');
 }
@@ -501,6 +501,18 @@ function resolvedPresetValue(selectId,inputId){
  const v=$(selectId).value;
  return v==='other'?$(inputId).value.trim():v;
 }
+function setItemValue(value){
+ const preset=$('#fitemPreset');
+ const manual=$('#fitemManual');
+ const known=['練習着、昼食、水筒、着替え','試合用ユニフォーム、昼食、水筒、着替え'];
+ if(!value){
+  preset.value=''; manual.value=''; manual.classList.remove('show-manual');
+ }else if(known.includes(value)){
+  preset.value=value; manual.value=''; manual.classList.remove('show-manual');
+ }else{
+  preset.value='other'; manual.value=value; manual.classList.add('show-manual');
+ }
+}
 function syncManualField(selectId,inputId){
  const manual=$(selectId).value==='other';
  $(inputId).classList.toggle('show-manual',manual);
@@ -509,11 +521,17 @@ function syncManualField(selectId,inputId){
 }
 $('#ftitlePreset').onchange=()=>syncManualField('#ftitlePreset','#ftitle');
 $('#fplacePreset').onchange=()=>syncManualField('#fplacePreset','#fplace');
+$('#fitemPreset').onchange=()=>{
+ const manual=$('#fitemPreset').value==='other';
+ $('#fitemManual').classList.toggle('show-manual',manual);
+ if(manual) setTimeout(()=>$('#fitemManual').focus(),0);
+ else $('#fitemManual').value='';
+};
 
 function clearForm(){
  $('#fdate').value=''; updateDatePickerText(); $('#ftype').value='game'; setPresetOrManual('#ftitlePreset','#ftitle','');
  $('#fteam').value='越谷ボーイズ'; $('#fgrade').value='1'; $('#ftime').value='';
- setPresetOrManual('#fplacePreset','#fplace',''); $('#fitem1').value=''; $('#fitem2').value=''; $('#fnote').value='';
+ setPresetOrManual('#fplacePreset','#fplace',''); $('#fitemPreset').value=''; $('#fitemManual').value=''; $('#fitemManual').classList.remove('show-manual'); $('#fnote').value='';
 }
 function openNewForm(){
  editingId=null; selectedEvent=null; clearForm();
@@ -524,8 +542,8 @@ function openNewForm(){
 function formatNoteForDetail(note){
  const n=splitStoredNote(note||'');
  if((note||'').startsWith('【持ち物】')){
-  const items=[n.item1,n.item2].filter(Boolean).join('・');
-  return `${items?`🎒 持ち物：${items}<br>`:''}${n.message?`📢 連絡事項：${n.message}`:''}` || 'なし';
+  const item=n.item||'';
+  return `${item?`🎒 持ち物：${item}<br>`:''}${n.message?`📢 連絡事項：${n.message}`:''}` || 'なし';
  }
  return note||'なし';
 }
@@ -548,7 +566,7 @@ function openDuplicateForm(){
  $('#ftime').value=e.time||'';
  setPresetOrManual('#fplacePreset','#fplace',e.place||'');
  const dupNote=splitStoredNote(e.note||'');
- $('#fitem1').value=dupNote.item1; $('#fitem2').value=dupNote.item2; $('#fnote').value=dupNote.message;
+ setItemValue(dupNote.item); $('#fnote').value=dupNote.message;
  $('#save').textContent='複製して登録する';
  $('#modal').classList.add('show');
 }
@@ -633,7 +651,7 @@ function openEditForm(){
  $('#fteam').value=e.team; $('#fgrade').value=e.grade; $('#ftime').value=e.time||'';
  setPresetOrManual('#fplacePreset','#fplace',e.place||'');
  const editNote=splitStoredNote(e.note||'');
- $('#fitem1').value=editNote.item1; $('#fitem2').value=editNote.item2; $('#fnote').value=editNote.message;
+ setItemValue(editNote.item); $('#fnote').value=editNote.message;
  $('#save').textContent='変更を保存する'; $('#modal').classList.add('show');
 }
 function setView(mode){
